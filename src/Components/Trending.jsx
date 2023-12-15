@@ -3,9 +3,14 @@ import { staticImageById } from "../helpers/findImage";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faUser} from '@fortawesome/free-solid-svg-icons';
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { userLogout } from '../features/loginUser.slice.js';
+import { useDispatch, useSelector } from "react-redux";
 
 const Trending = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state) => state.loginUser)
     const [isHovered, setHovered] = useState(false);
 
     const handleMouseEnter = () => {
@@ -16,6 +21,12 @@ const Trending = () => {
       setHovered(false);
     };
 
+      const logoutUser = () => {
+        dispatch(userLogout());
+        navigate("/login");
+        window.location.reload();
+      };
+
   return (
     <div className="w-1/4 sticky right-0 top-0 h-screen">
       <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
@@ -24,16 +35,13 @@ const Trending = () => {
             icon={faUser}
             className="right-0 top-0 absolute m-3  w-4"
           />
-          {isHovered && (
+          {isAuthenticated && isHovered && (
             <ul className="absolute top-8 right-5 w-24 border border-gray-300 divide-y divide-gray-200 rounded-md ">
-              <Link to={"/signup"}>
-                <li value="signup" className="px-2 py-2 hover:bg-slate-100">
-                  Sign up
-                </li>
-              </Link>
-              <Link to={"/login"}>
-                <li value="login" className="px-2 py-2 hover:bg-slate-100">
-                  Login
+              <Link to={"/login"}
+                onClick={logoutUser}
+              >
+                <li value="logout" className="px-2 py-2 hover:bg-slate-100">
+                  Logout
                 </li>
               </Link>
             </ul>

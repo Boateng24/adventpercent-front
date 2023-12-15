@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { authBase } from "../api/backend.api";
+import Cookies from 'js-cookie';
 
 export const loginUser = createAsyncThunk("login", async (args, thunkApi) => {
   try {
@@ -15,6 +16,13 @@ export const loginUser = createAsyncThunk("login", async (args, thunkApi) => {
 });
 
 
+
+export const userLogout = () => {
+  return (dispatch) => {
+    Cookies.remove("token");
+    dispatch({ type: "login/reset" });
+  };
+};
 
 
  const initialLoginState = {
@@ -30,24 +38,31 @@ export const loginUser = createAsyncThunk("login", async (args, thunkApi) => {
   const loginSlice = createSlice({
     name: "login",
     initialState: initialLoginState,
-    reducers: {},
+    reducers: {
+      // userLogout: (state) => {
+      //   Cookies.remove("token");
+      //   state.isloggedIn = false;
+      //   state.user = {};
+      // },
+    },
     extraReducers: (builder) => {
       builder
         .addCase(loginUser.pending, (state) => {
-          state.loading = true
-          state.isAuthenticated = false
+          state.loading = true;
+          state.isAuthenticated = false;
         })
         .addCase(loginUser.fulfilled, (state, action) => {
           state.status = 200;
-          state.isAuthenticated = true
+          state.isAuthenticated = true;
           state.user = action.payload.loggedInUser;
           state.accessToken = action.payload.accessToken;
+          Cookies.set("token", action.payload.accessToken);
         })
         .addCase(loginUser.rejected, (state, action) => {
-          state.loading= false;
+          state.loading = false;
           state.isAuthenticated = false;
-          state.error = action.payload.error
-          toast(state.error)
+          state.error = action.payload.error;
+          toast(state.error);
         });
     },
   });

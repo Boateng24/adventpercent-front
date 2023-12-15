@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import SideImage from "../Components/sideImage";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,9 +5,9 @@ import { useState } from "react";
 import { loginUser } from "../features/loginUser.slice";
 import { toast } from "react-toastify";
 import { Spin } from "antd";
+import { validate } from "../helpers/displayErrors";
 
 const Login = () => {
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.loginUser);
@@ -16,11 +15,15 @@ const Login = () => {
     email: "",
     password: "",
   };
+  const [errors, setErrors] = useState({});
   const [login, setLogin] = useState(true);
   const [inputs, setInputs] = useState(InitialState);
 
   const handleChange = (e) => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: "" });
+    }
   };
 
   const { email, password } = inputs;
@@ -31,24 +34,28 @@ const Login = () => {
     console.log(inputs);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(email, password);
-    dispatch(loginUser({ email, password }))
-      .then((result) => {
-        console.log("result", result);
-        if (result.payload?.status === 200) {
-          toast.success("Login Successful");
-          resetState();
-          navigate("/");
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+ const handleSubmit = (e) => {
+   e.preventDefault();
+   console.log(email, password);
+    console.log('entered')
+    if(validate(inputs, setErrors)) {
+     dispatch(loginUser({ email, password }))
+       .then((result) => {
+         console.log("result", result);
+         console.log("error", errors);
+         if (result.payload?.status === 200) {
+           toast.success("Login Successful");
+           resetState();
+           navigate("/");
+         }
+       })
+       .catch((error) => {
+         console.log("error", error);
+       });
+      }
+ };
   return (
-    <div className="flex items-center flex-row w-screen h-screen">
+    <div className="flex flex-row w-screen h-screen">
       <section className="flex flex-col justify-between items-start flex-1 self-stretch">
         <form
           action=""
@@ -67,24 +74,42 @@ const Login = () => {
               Sign in
             </h1>
           </header>
+          {errors?.email && (
+            <p style={{ color: "red", fontSize: "14px", marginBottom: "-20px"}}>
+              {errors?.email}
+            </p>
+          )}
           <input
             type="text"
-            className="flex p-2.5 px-3.5 items-center gap-2 self-stretch rounded-md border border-gray-300 bg-white shadow-xs"
+            className={`flex p-2.5 px-3.5 items-center gap-2 self-stretch rounded-md border ${
+              errors?.email ? "border-red-500" : "border-gray-300"
+            } bg-white shadow-xs`}
             placeholder="Enter your email"
             name="email"
             value={inputs.email}
             onChange={handleChange}
           />
+          {errors?.password && (
+            <p
+              style={{ color: "red", marginBottom: "-20px", fontSize: "14px" }}
+            >
+              {errors?.password}
+            </p>
+          )}
           <input
             type="password"
-            className="flex p-2.5 px-3.5 items-center gap-2 self-stretch rounded-md border border-gray-300 bg-white shadow-xs"
+            className={`flex p-2.5 px-3.5 items-center gap-2 self-stretch rounded-md border ${
+              errors?.password ? "border-red-500" : "border-gray-300"
+            } bg-white shadow-xs`}
             placeholder="Enter your password"
             name="password"
             value={inputs.password}
             onChange={handleChange}
           />
           <div className="actions flex flex-col items-start gap-4 self-stretch">
-            <button className="flex p-2 px-4 justify-center items-center gap-2 flex-1 rounded-md border border-[#135352] bg-[#135352] shadow-xs self-stretch">
+            <button className="flex p-2 px-4 justify-center items-center gap-2 flex-1 rounded-md border border-[#135352] bg-[#135352] shadow-xs self-stretch"
+            type="submit"
+            >
               {loading ? (
                 <Spin style={{ color: "whitesmoke" }} />
               ) : (
@@ -134,6 +159,6 @@ const Login = () => {
       </section>
     </div>
   );
-}
+};
 
-export default Login
+export default Login;

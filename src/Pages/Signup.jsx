@@ -4,80 +4,60 @@ import SideImage from "../Components/sideImage";
 import { useDispatch, useSelector} from "react-redux";
 import { signupUser } from "../features/signupUser.slice";
 import { toast } from "react-toastify";
-import { Spin } from 'antd'
+import { Spin } from 'antd';
+import { validate } from "../helpers/displayErrors";
+ 
 
 const Signup = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate()
-  const { loading} = useSelector(
-    (state) => state.signupUser
-  );
+  const navigate = useNavigate();
+  const { loading } = useSelector((state) => state.signupUser);
 
-    const InitialState = {
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: ""
-    };
-    const [ errors, setErrors] = useState({});
-    const [signup, setSignup] = useState(true);
-    const [inputs, setInputs] = useState(InitialState);
+  const InitialState = {
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  };
+  const [errors, setErrors] = useState({});
+  const [signup, setSignup] = useState(true);
+  const [inputs, setInputs] = useState(InitialState);
 
-    const handleChange = (e) => {
-      setInputs({...inputs, [e.target.name] : e.target.value});
-      if (errors[e.target.name]) {
-        setErrors({ ...errors, [e.target.name]: "" });
-      }
-    };
+  const handleChange = (e) => {
+    setInputs({ ...inputs, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: "" });
+    }
+  };
 
-    const validate = (inputs) => {
-      let tempErrors = {};
-      if (!inputs.username) tempErrors.username = "Username is required";
-      if (!inputs.password) tempErrors.password = "Password is required";
-      if (inputs.password && inputs.password.length < 6)
-        tempErrors.password =
-          "Password must be longer than or equal to 6 characters";
-      if (!inputs.confirmPassword)
-        tempErrors.confirmPassword = "Please confirm your password";
-      if (inputs.password !== inputs.confirmPassword)
-        tempErrors.confirmPassword = "Passwords does not match";
-      if (!inputs.email) tempErrors.email = "Email is required";
-      if (inputs.email && !/\S+@\S+\.\S+/.test(inputs.email))
-        tempErrors.email = "Email must be a valid email address";
+  const { username, email, password, confirmPassword } = inputs;
+  const resetState = () => {
+    setSignup(!signup);
+    setInputs(InitialState);
+    console.log(signup);
+    console.log(inputs);
+  };
 
-      setErrors(tempErrors);
-      return Object.keys(tempErrors).length === 0;
-    };
- 
-    const { username, email, password, confirmPassword } = inputs;
-     const resetState = () => {
-       setSignup(!signup);
-       setInputs(InitialState);
-       console.log(signup);
-       console.log(inputs);
-     };
-
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      console.log(username,email, password, confirmPassword);
-     if(validate(inputs)) {
-       dispatch(signupUser({ username, email, password, confirmPassword }))
-         .then((result) => {
-           console.log("result", result);
-           console.log("error", errors);
-           if (result.payload?.status === 201) {
-             toast.success("Signup successful");
-             resetState();
-             navigate("/login");
-           }
-         })
-         .catch((error) => {
-           console.log("error", error);
-         });
-     }
-    };
-
-   
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(username, email, password, confirmPassword);
+    if (validate(inputs, setErrors)) {
+      console.log('entered')
+      dispatch(signupUser({ username, email, password, confirmPassword }))
+        .then((result) => {
+          console.log("result", result);
+          console.log("error", errors);
+          if (result.payload?.status === 201) {
+            toast.success("Signup successful");
+            resetState();
+            navigate("/login");
+          }
+        })
+        .catch((error) => {
+          console.log("error", error);
+        });
+    }
+  };
 
   return (
     <div className="flex items-center flex-row w-screen h-screen">
@@ -160,7 +140,9 @@ const Signup = () => {
             </p>
           )}
           <div className="actions flex flex-col items-start gap-4 self-stretch">
-            <button className="flex p-2 px-4 justify-center items-center gap-2 flex-1 rounded-md border border-[#135352] bg-[#135352] shadow-xs self-stretch">
+            <button className="flex p-2 px-4 justify-center items-center gap-2 flex-1 rounded-md border border-[#135352] bg-[#135352] shadow-xs self-stretch"
+              type="submit"
+            >
               {loading ? (
                 <Spin style={{ color: "whitesmoke" }} />
               ) : (
