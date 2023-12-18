@@ -5,12 +5,10 @@ import axios from "axios";
 const SongDetails = () => {
     const [song, setSong] = useState(null)
     const {id} = useParams();
-    console.log("urlId", id);
 
     useEffect(() => {
       const fetchSongById = async () => {
         const response = await axios.get(`http://localhost:5000/songs/song/${id}`);
-        console.log('song', response)
         setSong(response.data.song)
       }
       fetchSongById()
