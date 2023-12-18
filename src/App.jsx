@@ -12,6 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Provider } from 'react-redux';
 import store from './store/store';
 import ProtectedRoute from './Components/ProtectedRoutes';
+import SongDetails from './Components/SongDetails';
 
 
 
@@ -35,6 +36,7 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="forgot" element={<Forgot />} />
           <Route path="reset" element={<Reset />} />
+          <Route path='song/:id' element={<SongDetails/>}/>
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </Router>
