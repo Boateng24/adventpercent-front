@@ -13,7 +13,7 @@ const BottomMusic = () => {
   // const [error, setError] = useState(null);
 
    const [visibleSongs, setVisibleSongs] = useState(4); // Initially show 4 songs
-   const maxSongs = 16;
+   const maxSongs = 20;
    const minSongs = 4;
   const toggleSongsVisibility = () => {
     setVisibleSongs((prevCount) => {

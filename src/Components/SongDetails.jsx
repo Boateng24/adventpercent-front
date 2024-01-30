@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 // import songService from '../api/songs/songs'
 import axios from "axios";
+// import ReactPlayer from "react-player";
+import AudioPlayer from "./Player";
 const SongDetails = () => {
     const [song, setSong] = useState(null)
     const {id} = useParams();
@@ -10,14 +12,18 @@ const SongDetails = () => {
       const fetchSongById = async () => {
         const response = await axios.get(`http://localhost:5000/songs/song/${id}`);
         setSong(response.data.song)
+        console.log('song response', response)
       }
       fetchSongById()
     }, [id])
 
   
   return (
-      <div className="flex flex-col items-center justify-center h-screen ml-[460px]">
-        <h1>{song?.title ? song.title : "Music tune"}</h1>
+    <div className="flex flex-col items-center justify-center w-[100%]">
+      <div className="flex flex-col items-center justify-center">
+        <h1 className="text-[#135352] font-semibold mb-4">
+          {song?.title ? song.title : "Music tune"}
+        </h1>
         <img
           src={
             song?.image ? song.image : "/src/assets/songImgs/sda-music-img.jpg"
@@ -27,14 +33,15 @@ const SongDetails = () => {
         />
         <h3>{song?.artist ? song.artist : "Musician"}</h3>
         {song?.track ? (
-          <audio controls autoPlay className="w-full">
-            <source src={song.track} type="audio/mpeg" />
-          </audio>
+          <AudioPlayer
+            src={song.track}
+            songName={song.title}
+          />
         ) : (
           <p>Loading audio...</p>
         )}
       </div>
-  
+    </div>
   );
 }
 

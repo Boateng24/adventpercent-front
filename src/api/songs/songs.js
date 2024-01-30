@@ -19,5 +19,14 @@ const getSongById = async (id) => {
     }
 }
 
+const trendingSongs = async () => {
+  try {
+    const response = await axios.get(`${songBase}/trendings`)
+    return response.data.trendingSongs
+  } catch (error) {
+    console.log(error)
+  }
+}
 
-export default {recommendedSongs, getSongById};
+
+export default {recommendedSongs, getSongById, trendingSongs};
