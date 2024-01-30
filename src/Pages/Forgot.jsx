@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import SideImage from "../Components/sideImage";
+import { RightImage } from "../Components/RightImage";
 
 const Forgot = () => {
   return (
@@ -47,7 +47,7 @@ const Forgot = () => {
         </form>
       </section>
       <section className="flex self-stretch flex-1">
-        <SideImage />
+        <RightImage />
       </section>
     </div>
   );
