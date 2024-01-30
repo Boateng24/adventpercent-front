@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState} from "react";
-import SideImage from "../Components/sideImage";
+import {RightImage} from "../Components/RightImage";
 import { useDispatch, useSelector} from "react-redux";
 import { signupUser } from "../features/signupUser.slice";
 import { toast } from "react-toastify";
@@ -175,7 +175,7 @@ const Signup = () => {
         </form>
       </section>
       <section className="flex self-stretch flex-1">
-        <SideImage />
+        <RightImage />
       </section>
     </div>
   );

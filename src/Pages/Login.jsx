@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import SideImage from "../Components/sideImage";
+import {RightImage} from "../Components/RightImage";
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { loginUser } from "../features/loginUser.slice";
@@ -155,7 +155,7 @@ const Login = () => {
         </form>
       </section>
       <section className="flex self-stretch flex-1">
-        <SideImage />
+        <RightImage />
       </section>
     </div>
   );
