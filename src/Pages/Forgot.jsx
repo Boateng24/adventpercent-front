@@ -12,7 +12,7 @@ const Forgot = () => {
           <header className="flex flex-col items-center gap-6 self-stretch">
             <Link to={"/"}>
               <img
-                src="/src/assets/advlogo.svg"
+                src="/assets/advlogo.svg"
                 alt="signuplogo"
                 className="w-16 h-16 rounded-full lightgray 50% / cover no-repeat"
               />

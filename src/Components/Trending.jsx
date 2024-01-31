@@ -78,7 +78,7 @@ const Trending = () => {
                       src={
                         song?.imageSrc
                           ? song.imageSrc
-                          : "/src/assets/songImgs/sda-music-img.jpg"
+                          : "/assets/songImgs/sda-music-img.jpg"
                       }
                       alt=""
                     />

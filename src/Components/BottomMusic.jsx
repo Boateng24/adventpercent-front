@@ -68,7 +68,7 @@ const BottomMusic = () => {
                       src={
                         item?.image
                           ? item.image
-                          : "/src/assets/songImgs/sda-music-img.jpg"
+                          : "/assets/songImgs/sda-music-img.jpg"
                       }
                       alt="recentImg"
                       className="w-full h-44 object-cover"

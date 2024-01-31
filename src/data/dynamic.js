@@ -1,1 +1,1 @@
-export const dynamicAssets = [{ id: 1, banner: "/src/assets/Bannerimage.svg" }];
+export const dynamicAssets = [{ id: 1, banner: "/assets/Bannerimage.svg" }];

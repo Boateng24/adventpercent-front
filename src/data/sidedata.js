@@ -2,7 +2,7 @@ export const sideMusic = [
   {
     id: 1,
     title: "For Workplace",
-    imageSrc: "/src/assets/ri_rhythm-fill.svg",
+    imageSrc: "/assets/ri_rhythm-fill.svg",
   },
   {
     id: 2,

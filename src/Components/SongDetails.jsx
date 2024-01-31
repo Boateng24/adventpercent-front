@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 // import ReactPlayer from "react-player";
 import AudioPlayer from "./Player";
+import { songBase } from "../api/backend.api";
 const SongDetails = () => {
     const [song, setSong] = useState(null)
     const {id} = useParams();
 
     useEffect(() => {
       const fetchSongById = async () => {
-        const response = await axios.get(`http://localhost:5000/songs/song/${id}`);
+        const response = await axios.get(`${songBase}/song/${id}`);
         setSong(response.data.song)
         console.log('song response', response)
       }
@@ -26,7 +27,7 @@ const SongDetails = () => {
         </h1>
         <img
           src={
-            song?.image ? song.image : "/src/assets/songImgs/sda-music-img.jpg"
+            song?.image ? song.image : "/assets/songImgs/sda-music-img.jpg"
           }
           alt={song?.title}
           className="w-96 rounded-md items-center justify-center"

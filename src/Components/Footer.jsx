@@ -7,7 +7,7 @@ const Footer = () => {
         © ADVENT PERCENT APP 2023
       </p>
       <div className="mail flex items-center gap-2">
-        <img src="/src/assets/mail.svg" alt="email" />
+        <img src="/assets/mail.svg" alt="email" />
         <p className="text-gray-500 font-inter text-sm font-normal leading-5">adventpercent@gmail.com</p>
       </div>
     </footer>

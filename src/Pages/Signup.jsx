@@ -70,7 +70,7 @@ const Signup = () => {
           <header className="flex flex-col items-center gap-6 self-stretch">
             <Link to={"/"}>
               <img
-                src="/src/assets/advlogo.svg"
+                src="/assets/advlogo.svg"
                 alt="signuplogo"
                 className="w-16 h-16 rounded-full lightgray 50% / cover no-repeat"
               />
@@ -151,11 +151,11 @@ const Signup = () => {
             </button>
             <div className="socialbuttongroup flex flex-col justify-center items-center gap-3 self-stretch">
               <button className="google flex p-2.5 px-4 justify-center items-center gap-3 self-stretch rounded-md border border-gray-300 bg-white shadow-xs">
-                <img src="/src/assets/google.svg" alt="google" />
+                <img src="/assets/google.svg" alt="google" />
                 Sign up with Google
               </button>
               <button className="facebook flex p-2.5 px-4 justify-center items-center gap-3 self-stretch rounded-md border border-gray-300 bg-white shadow-xs">
-                <img src="/src/assets/facebook.svg" alt="facebook" />
+                <img src="/assets/facebook.svg" alt="facebook" />
                 Sign up with Facebook
               </button>
             </div>
