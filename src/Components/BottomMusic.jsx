@@ -1,48 +1,43 @@
-import { recommended } from "../data/recommendation";
-import { recentPlayed } from "../data/newlyPlayed";
-import { staticImageById } from "../helpers/findImage";
+// import { recommended } from "../data/recommendation";
+// import { recentPlayed } from "../data/newlyPlayed";
+// import { staticImageById } from "../helpers/findImage";
 import { useEffect, useState } from "react";
-import songService from '../api/songs/songs';
+import songService from "../api/songs/songs";
 import { Spin } from "antd";
 import { Link } from "react-router-dom";
 
-
 const BottomMusic = () => {
-  const [newSongs, setNewSongs] = useState([])
+  const [newSongs, setNewSongs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  // const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
 
-   const [visibleSongs, setVisibleSongs] = useState(4); // Initially show 4 songs
-   const maxSongs = 20;
-   const minSongs = 4;
-  const toggleSongsVisibility = () => {
-    setVisibleSongs((prevCount) => {
-      // If we are showing the maximum number of songs, clicking the button should show fewer songs
-      if (prevCount === maxSongs) {
-        return minSongs;
-      }
-      // Otherwise, show more songs, but do not exceed the maximum number
-      else {
-        return Math.min(prevCount + 4, maxSongs);
-      }
-    });
-  };
-  
   useEffect(() => {
     const fetchSongs = async () => {
       try {
-        const fetchedSongs = await songService.recommendedSongs();
-        setNewSongs(fetchedSongs);
+        const fetchedSongs = await songService.recommendedSongs(page);
+        console.log("songData", fetchedSongs)
+        setNewSongs((prev) => [...prev, ...fetchedSongs]);
       } catch (err) {
-        console.log(err.message)
+        console.log(err.message);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchSongs();
+  }, [page]);
+
+  const handleScroll = () => {
+    if(window.innerHeight + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight){
+      setPage((prev) => prev + 1)
+    }
+    { isLoading && <Spin/> }
+  }
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-  
 
   return (
     <div>
@@ -50,18 +45,14 @@ const BottomMusic = () => {
         <div>
           <div className="flex mt-5 justify-between items-center">
             <h1 className="text-[#334054] font-bold text-lg">New Releases</h1>
-            <p
-              className="text-[#C7AF4E] cursor-pointer"
-              onClick={toggleSongsVisibility}
-            >
-              {visibleSongs === maxSongs ? "See less" : "See more"}
-            </p>
           </div>
           <div className="flex flex-wrap mt-3 w-full">
             {isLoading ? (
-              <Spin />
+              <div style={{ textAlign: "center", width: "100%" }}>
+                <Spin />
+              </div>
             ) : (
-              newSongs.slice(0, visibleSongs).map((item) => (
+              newSongs.slice(0, newSongs.length).map((item) => (
                 <div key={item.id} className="w-1/4 p-2 box-border">
                   <Link to={`/song/${item?.id}`}>
                     <img
@@ -89,14 +80,13 @@ const BottomMusic = () => {
               ))
             )}
           </div>
-          <p
-            className="text-[#C7AF4E] cursor-pointer"
-            onClick={toggleSongsVisibility}
-          >
-            {visibleSongs === maxSongs ? "See less" : "See more"}
-          </p>
+          {isLoading && (
+            <div style={{ textAlign: "center", width: "100%" }}>
+              <Spin />
+            </div>
+          )}
         </div>
-        <div className="flex mt-5 justify-between">
+        {/* <div className="flex mt-5 justify-between">
           <h1 className="text-[#334054] font-bold text-lg">
             Songs You May Like
           </h1>
@@ -116,9 +106,9 @@ const BottomMusic = () => {
               <p className="text-[#334054] text-center">{item.artist}</p>
             </div>
           ))}
-        </div>
+        </div> */}
 
-        <div className="max-w-full overflow-x-auto">
+        {/* <div className="max-w-full overflow-x-auto">
           <div className="flex mt-8 justify-between">
             <h1 className="text-[#334054] font-bold text-lg">
               Recently Played
@@ -154,10 +144,10 @@ const BottomMusic = () => {
               ))}
             </tbody>
           </table>
-        </div>
+        </div> */}
       </div>
     </div>
   );
-}
+};
 
-export default BottomMusic
+export default BottomMusic;

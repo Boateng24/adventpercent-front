@@ -2,7 +2,6 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 // import songService from '../api/songs/songs'
 import axios from "axios";
-// import ReactPlayer from "react-player";
 import AudioPlayer from "./Player";
 import { songBase } from "../api/backend.api";
 const SongDetails = () => {
@@ -12,7 +11,7 @@ const SongDetails = () => {
     useEffect(() => {
       const fetchSongById = async () => {
         const response = await axios.get(`${songBase}/song/${id}`);
-        setSong(response.data.song)
+        setSong(response.data?.song)
         console.log('song response', response)
       }
       fetchSongById()

@@ -76,8 +76,8 @@ const Trending = () => {
                     <img
                       className="h-14 w-14"
                       src={
-                        song?.imageSrc
-                          ? song.imageSrc
+                        song?.image
+                          ? song.image
                           : "/assets/songImgs/sda-music-img.jpg"
                       }
                       alt=""
