@@ -71,7 +71,7 @@ const BottomMusic = () => {
                       {item?.artist ? item.artist : "Musician"}
                     </p>
                     {item?.track && (
-                      <audio controls className="w-full mt-2 h-8">
+                      <audio controls className="w-full mt-2 h-8" preload="metadata">
                         <source src={item.track} type="audio/mpeg" />
                       </audio>
                     )}

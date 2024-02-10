@@ -1,5 +1,5 @@
 // import { trending } from "../data/trending";
-import { staticImageById } from "../helpers/findImage";
+// import { staticImageById } from "../helpers/findImage";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faUser} from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from "react";
@@ -104,17 +104,17 @@ const Trending = () => {
                 {Math.floor(song.duration / 60)}:
                 {String(song.duration % 60).padStart(2, "0")} min
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button className="mt-1">
                   <img src={staticImageById(6)} alt="" />
                 </button>
-              </td>
+              </td> */}
 
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button className="mt-1">
                   <img src={staticImageById(14)} alt="" />
                 </button>
-              </td>
+              </td> */}
             </tr>
           ))}
         </tbody>
