@@ -65,10 +65,10 @@ const BottomMusic = () => {
                       className="w-full h-44 object-cover"
                     />
                     <h3 className="text-[#135352] font-semibold truncate">
-                      {item.title ? item?.title : "Music tune"}
+                      {item?.title ? item?.title : "Music tune"}
                     </h3>
                     <p className="text-[#334054] truncate">
-                      {item.artist ? item.artist : "Musician"}
+                      {item?.artist ? item.artist : "Musician"}
                     </p>
                     {item?.track && (
                       <audio controls className="w-full mt-2 h-8">
@@ -80,11 +80,6 @@ const BottomMusic = () => {
               ))
             )}
           </div>
-          {isLoading && (
-            <div style={{ textAlign: "center", width: "100%" }}>
-              <Spin />
-            </div>
-          )}
         </div>
         {/* <div className="flex mt-5 justify-between">
           <h1 className="text-[#334054] font-bold text-lg">

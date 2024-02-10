@@ -36,6 +36,7 @@ const SongDetails = () => {
           <AudioPlayer
             src={song.track}
             songName={song.title}
+
           />
         ) : (
           <p>Loading audio...</p>

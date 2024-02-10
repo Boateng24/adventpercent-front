@@ -8,13 +8,14 @@ import { userLogout } from '../features/loginUser.slice.js';
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { songBase } from "../api/backend.api.js";
+import { truncateString } from "../helpers/truncate.js";
 
 const Trending = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.loginUser)
     const [isHovered, setHovered] = useState(false);
-    const [trending, SetTrending] = useState([])
+    const [trending, setTrending] = useState([])
 
     const handleMouseEnter = () => {
       setHovered(true);
@@ -35,7 +36,11 @@ const Trending = () => {
     const fetchTrendings = async () => {
         try {
           const response = await axios.get(`${songBase}/trendings`);
-          SetTrending(response.data.trendingSongs)
+          setTrending(
+            response.data.trendingSongs.map((songItem) => ({
+              ...songItem.song, // Spread the song details
+            }))
+          );
         } catch (error) {
           console.log(error)
         }
@@ -64,11 +69,13 @@ const Trending = () => {
           )}
         </div>
       </div>
-      <th className="text-[#334054] font-bold text-lg pl-2">Trending Songs for the Week</th>
+      <th className="text-[#334054] font-bold text-lg pl-2">
+        Trending Songs for the Week
+      </th>
       <table className="min-w-full divide-y divide-gray-200">
         <tbody className="bg-white divide-y divide-gray-200">
           {trending.map((song) => (
-            <tr key={song.id} className=" hover:bg-lime-500 cursor-pointer">
+            <tr key={song?.id} className=" hover:bg-lime-500 cursor-pointer">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10">
@@ -85,16 +92,17 @@ const Trending = () => {
                   </div>
                   <div className="ml-4">
                     <div className="text-sm font-medium text-gray-900">
-                      {song?.title ? song.title : "Music tune"}
+                      {song?.title ?  truncateString(song.title, 15) : "Music tune"}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {song?.artist ? song.artist : "Musician"}
+                      {song?.artist ?  truncateString(song.artist, 15) : "Musician"}
                     </div>
                   </div>
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {song.duration}
+                {Math.floor(song.duration / 60)}:
+                {String(song.duration % 60).padStart(2, "0")} min
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button className="mt-1">
