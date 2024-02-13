@@ -1,23 +1,22 @@
 export const sideMusic = [
   {
     id: 1,
-    title: "For Workplace",
-    imageSrc: "/assets/ri_rhythm-fill.svg",
+    title: "Quartet",
   },
   {
     id: 2,
-    title: "Rich Brian Collection",
+    title: "Chorale",
   },
   {
     id: 3,
-    title: "Deep Focus",
+    title: "Acapella",
   },
   {
     id: 4,
-    title: "Lo-Fi Upbeat Jazz",
+    title: "Old Timers",
   },
   {
     id: 5,
-    title: "Christmas Playlist",
+    title: "Live Performance",
   },
 ];
