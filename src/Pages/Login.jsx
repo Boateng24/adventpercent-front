@@ -3,6 +3,7 @@ import {RightImage} from "../Components/RightImage";
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { loginUser } from "../features/loginUser.slice";
+import { googleSignIn} from "../features/socialAuth.slice";
 import { toast } from "react-toastify";
 import { Spin } from "antd";
 import { validate } from "../helpers/displayErrors";
@@ -11,6 +12,8 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.loginUser);
+  const { loading: socialLoading } = useSelector((state) => state.socialAuth);
+  
   const InitialState = {
     email: "",
     password: "",
@@ -30,19 +33,13 @@ const Login = () => {
   const resetState = () => {
     setLogin(!login);
     setInputs(InitialState);
-    console.log(login);
-    console.log(inputs);
   };
 
- const handleSubmit = (e) => {
-   e.preventDefault();
-   console.log(email, password);
-    console.log('entered')
+  const handleSubmit = (e) => {
+    e.preventDefault();
     if(validate(inputs, setErrors)) {
      dispatch(loginUser({ email, password }))
        .then((result) => {
-         console.log("result", result);
-         console.log("error", errors);
          if (result.payload?.status === 200) {
            toast.success("Login Successful");
            resetState();
@@ -53,7 +50,20 @@ const Login = () => {
          console.log("error", error);
        });
       }
- };
+  };
+
+  const handleGoogleSignIn = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await dispatch(googleSignIn());
+      if (result.type === 'socialAuth/googleSignIn/fulfilled') {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+    }
+  };
+
   return (
     <div className="flex flex-row w-screen h-screen">
       <section className="flex flex-col justify-between items-start flex-1 self-stretch">
@@ -109,6 +119,7 @@ const Login = () => {
           <div className="actions flex flex-col items-start gap-4 self-stretch">
             <button className="flex p-2 px-4 justify-center items-center gap-2 flex-1 rounded-md border border-[#135352] bg-[#135352] shadow-xs self-stretch"
             type="submit"
+            disabled={loading}
             >
               {loading ? (
                 <Spin style={{ color: "whitesmoke" }} />
@@ -118,13 +129,20 @@ const Login = () => {
             </button>
 
             <div className="socialbuttongroup flex flex-col justify-center items-center gap-3 self-stretch">
-              <button className="google flex p-2.5 px-4 justify-center items-center gap-3 self-stretch rounded-md border border-gray-300 bg-white shadow-xs">
-                <img src="/assets/google.svg" alt="google" />
-                Sign in with Google
-              </button>
-              <button className="facebook flex p-2.5 px-4 justify-center items-center gap-3 self-stretch rounded-md border border-gray-300 bg-white shadow-xs">
-                <img src="/assets/facebook.svg" alt="facebook" />
-                Sign in with Facebook
+              <button 
+                className="google flex p-2.5 px-4 justify-center items-center gap-3 self-stretch rounded-md border border-gray-300 bg-white shadow-xs hover:bg-gray-50 transition-colors"
+                onClick={handleGoogleSignIn}
+                disabled={socialLoading}
+                type="button"
+              >
+                {socialLoading ? (
+                  <Spin size="small" />
+                ) : (
+                  <>
+                    <img src="/assets/google.svg" alt="google" />
+                    Sign in with Google
+                  </>
+                )}
               </button>
             </div>
             <div className="flex justify-center items-start gap-1 self-stretch">

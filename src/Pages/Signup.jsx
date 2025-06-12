@@ -3,15 +3,16 @@ import { useState} from "react";
 import {RightImage} from "../Components/RightImage";
 import { useDispatch, useSelector} from "react-redux";
 import { signupUser } from "../features/signupUser.slice";
+import { googleSignIn} from "../features/socialAuth.slice";
 import { toast } from "react-toastify";
 import { Spin } from 'antd';
 import { validate } from "../helpers/displayErrors";
  
-
 const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.signupUser);
+  const { loading: socialLoading } = useSelector((state) => state.socialAuth);
 
   const InitialState = {
     username: "",
@@ -34,19 +35,13 @@ const Signup = () => {
   const resetState = () => {
     setSignup(!signup);
     setInputs(InitialState);
-    console.log(signup);
-    console.log(inputs);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(username, email, password, confirmPassword);
     if (validate(inputs, setErrors)) {
-      console.log('entered')
       dispatch(signupUser({ username, email, password, confirmPassword }))
         .then((result) => {
-          console.log("result", result);
-          console.log("error", errors);
           if (result.payload?.status === 201) {
             toast.success("Signup successful");
             resetState();
@@ -59,6 +54,19 @@ const Signup = () => {
     }
   };
 
+  const handleGoogleSignIn = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await dispatch(googleSignIn());
+      if (result.type === 'socialAuth/googleSignIn/fulfilled') {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+    }
+  };
+
+ 
   return (
     <div className="flex items-center flex-row w-screen h-screen">
       <section className="flex flex-col justify-between items-start flex-1 self-stretch">
@@ -112,7 +120,7 @@ const Signup = () => {
           <input
             type="password"
             className={`flex p-2.5 px-3.5 items-center gap-2 self-stretch rounded-md border ${
-              errors?.email ? "border-red-500" : "border-gray-300"
+              errors?.password ? "border-red-500" : "border-gray-300"
             } bg-white shadow-xs`}
             placeholder="Create a password"
             name="password"
@@ -142,6 +150,7 @@ const Signup = () => {
           <div className="actions flex flex-col items-start gap-4 self-stretch">
             <button className="flex p-2 px-4 justify-center items-center gap-2 flex-1 rounded-md border border-[#135352] bg-[#135352] shadow-xs self-stretch"
               type="submit"
+              disabled={loading}
             >
               {loading ? (
                 <Spin style={{ color: "whitesmoke" }} />
@@ -150,13 +159,20 @@ const Signup = () => {
               )}
             </button>
             <div className="socialbuttongroup flex flex-col justify-center items-center gap-3 self-stretch">
-              <button className="google flex p-2.5 px-4 justify-center items-center gap-3 self-stretch rounded-md border border-gray-300 bg-white shadow-xs">
-                <img src="/assets/google.svg" alt="google" />
-                Sign up with Google
-              </button>
-              <button className="facebook flex p-2.5 px-4 justify-center items-center gap-3 self-stretch rounded-md border border-gray-300 bg-white shadow-xs">
-                <img src="/assets/facebook.svg" alt="facebook" />
-                Sign up with Facebook
+              <button 
+                className="google flex p-2.5 px-4 justify-center items-center gap-3 self-stretch rounded-md border border-gray-300 bg-white shadow-xs hover:bg-gray-50 transition-colors"
+                onClick={handleGoogleSignIn}
+                disabled={socialLoading}
+                type="button"
+              >
+                {socialLoading ? (
+                  <Spin size="small" />
+                ) : (
+                  <>
+                    <img src="/assets/google.svg" alt="google" />
+                    Sign up with Google
+                  </>
+                )}
               </button>
             </div>
             <div className="flex justify-center items-start gap-1 self-stretch">
