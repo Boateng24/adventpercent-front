@@ -9,11 +9,13 @@ import {
   AlertCircle,
   Info
 } from "lucide-react";
+import Sidebar from "../Components/SideBar/SideBar";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { uploadBase } from "../api/backend.api";
 
 const Upload = () => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [files, setFiles] = useState({
     audios: [],
     images: []
@@ -240,6 +242,10 @@ const handleUpload = async () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 w-screen">
+         <Sidebar 
+                isCollapsed={sidebarCollapsed} 
+                onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+              />
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
