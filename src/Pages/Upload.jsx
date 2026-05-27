@@ -241,7 +241,7 @@ const handleUpload = async () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 w-screen">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-6 w-screen">
          <Sidebar 
                 isCollapsed={sidebarCollapsed} 
                 onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -253,8 +253,8 @@ const handleUpload = async () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Upload Music</h1>
-          <p className="text-gray-600">Share your music with the world. Upload audio files and cover images.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">Upload Music</h1>
+          <p className="text-gray-600 dark:text-gray-400">Share your music with the world. Upload audio files and cover images.</p>
         </motion.div>
 
         {/* Upload Area */}
@@ -266,9 +266,9 @@ const handleUpload = async () => {
           <div
             {...getRootProps()}
             className={`border-2 border-dashed rounded-xl p-8 md:p-12 text-center cursor-pointer transition-all duration-300 ${
-              isDragActive 
-                ? 'border-green-500 bg-green-50' 
-                : 'border-gray-300 hover:border-green-400 hover:bg-gray-50'
+              isDragActive
+                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'
             }`}
           >
             <input {...getInputProps()} />
@@ -277,19 +277,19 @@ const handleUpload = async () => {
               className="flex flex-col items-center space-y-4"
             >
               <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center ${
-                isDragActive ? 'bg-green-500' : 'bg-gray-200'
+                isDragActive ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
               }`}>
-                <UploadIcon className={isDragActive ? 'text-white' : 'text-gray-500'} size={28} />
+                <UploadIcon className={isDragActive ? 'text-white' : 'text-gray-500 dark:text-gray-400'} size={28} />
               </div>
               
               <div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   {isDragActive ? 'Drop files here' : 'Upload your music'}
                 </h3>
-                <p className="text-gray-600 mb-3 md:mb-4 text-sm md:text-base">
+                <p className="text-gray-600 dark:text-gray-400 mb-3 md:mb-4 text-sm md:text-base">
                   Drag and drop your audio files and cover images, or click to browse
                 </p>
-                <div className="text-xs md:text-sm text-gray-500 space-y-1">
+                <div className="text-xs md:text-sm text-gray-500 dark:text-gray-500 space-y-1">
                   <p>Supported formats: MP3, WAV, FLAC, M4A, OGG</p>
                   <p>Images: JPG, PNG, GIF, WebP</p>
                   <p>Maximum file size: 50MB</p>
@@ -306,13 +306,13 @@ const handleUpload = async () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-8"
+          className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-4 md:p-6 mb-8"
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               Files to Upload ({files.audios.length + files.images.length})
             </h2>
-            <div className="flex items-center text-sm text-gray-500">
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
               <Info size={16} className="mr-1" />
               <span>Fields marked with * are required</span>
             </div>
@@ -327,15 +327,15 @@ const handleUpload = async () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 className={`border rounded-lg p-4 ${
-                  Object.keys(audio.errors).length > 0 
-                    ? 'border-red-200 bg-red-50' 
-                    : 'border-gray-200'
+                  Object.keys(audio.errors).length > 0
+                    ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
+                    : 'border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <div className="flex items-start space-x-4">
                   {/* Audio File Icon */}
                   <div className="flex-shrink-0">
-                    <div className="w-14 h-14 md:w-16 md:h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <div className="w-14 h-14 md:w-16 md:h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
                       <Music className="text-green-500" size={24} />
                     </div>
                   </div>
@@ -343,7 +343,7 @@ const handleUpload = async () => {
                   {/* Audio File Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-gray-900 truncate">
+                      <h3 className="font-medium text-gray-900 dark:text-white truncate">
                         {audio.file.name}
                       </h3>
                       <div className="flex items-center space-x-2">
@@ -358,18 +358,18 @@ const handleUpload = async () => {
                       </div>
                     </div>
 
-                    <p className="text-sm text-gray-500 mb-3">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                       {(audio.file.size / (1024 * 1024)).toFixed(2)} MB • {audio.file.type}
                     </p>
 
                     {/* Progress Bar */}
                     {audio.status === 'uploading' && uploadProgress[audio.id] && (
                       <div className="mb-3">
-                        <div className="flex justify-between text-sm text-gray-600 mb-1">
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
                           <span>Uploading...</span>
                           <span>{Math.round(uploadProgress[audio.id])}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                           <div 
                             className="bg-green-500 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${uploadProgress[audio.id]}%` }}
@@ -381,7 +381,7 @@ const handleUpload = async () => {
                     {/* Metadata Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Title *
                         </label>
                         <input
@@ -389,8 +389,8 @@ const handleUpload = async () => {
                           placeholder="Song Title"
                           value={audio.title}
                           onChange={(e) => updateFileInfo(audio.id, 'title', e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                            audio.errors.title ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
+                            audio.errors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                           }`}
                           disabled={uploading}
                         />
@@ -400,7 +400,7 @@ const handleUpload = async () => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Artist *
                         </label>
                         <input
@@ -408,8 +408,8 @@ const handleUpload = async () => {
                           placeholder="Artist Name"
                           value={audio.artist}
                           onChange={(e) => updateFileInfo(audio.id, 'artist', e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                            audio.errors.artist ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
+                            audio.errors.artist ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                           }`}
                           disabled={uploading}
                         />
@@ -419,7 +419,7 @@ const handleUpload = async () => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Album
                         </label>
                         <input
@@ -427,19 +427,19 @@ const handleUpload = async () => {
                           placeholder="Album Name"
                           value={audio.album}
                           onChange={(e) => updateFileInfo(audio.id, 'album', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                           disabled={uploading}
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Genre
                         </label>
                         <select
                           value={audio.genre}
                           onChange={(e) => updateFileInfo(audio.id, 'genre', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                           disabled={uploading}
                         >
                           <option value="">Select Genre</option>
@@ -456,13 +456,13 @@ const handleUpload = async () => {
 
                     {/* Image Pairing Section */}
                     <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Cover Image (optional)
                       </label>
                       <select
                         value={audio.pairedImage || ''}
                         onChange={(e) => pairImageWithAudio(audio.id, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         disabled={uploading || files.images.length === 0}
                       >
                         <option value="">No cover image</option>
@@ -481,7 +481,7 @@ const handleUpload = async () => {
                             className="h-16 w-16 object-cover rounded-lg border"
                             alt="Cover preview"
                           />
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
                             {files.images.find(img => img.id === audio.pairedImage)?.file.name}
                           </span>
                         </div>
@@ -497,9 +497,9 @@ const handleUpload = async () => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="pt-4 border-t border-gray-200"
+                className="pt-4 border-t border-gray-200 dark:border-gray-700"
               >
-                <h4 className="font-medium text-gray-900 mb-3">Unassigned Images</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Unassigned Images</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {files.images
                     .filter(img => !files.audios.some(a => a.pairedImage === img.id))
@@ -556,16 +556,16 @@ const handleUpload = async () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl shadow-lg p-4 md:p-6"
+          className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-4 md:p-6"
         >
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Upload Guidelines</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Upload Guidelines</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div>
-              <h3 className="font-medium text-gray-900 mb-2 flex items-center">
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center">
                 <Info className="mr-2 text-blue-500" size={16} />
                 Audio Requirements
               </h3>
-              <ul className="text-sm text-gray-600 space-y-1.5">
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1.5">
                 <li className="flex items-start">
                   <span className="mr-1">•</span>
                   <span>High-quality audio files (320kbps MP3 or higher)</span>
@@ -585,11 +585,11 @@ const handleUpload = async () => {
               </ul>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 mb-2 flex items-center">
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center">
                 <Info className="mr-2 text-blue-500" size={16} />
                 Cover Art Guidelines
               </h3>
-              <ul className="text-sm text-gray-600 space-y-1.5">
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1.5">
                 <li className="flex items-start">
                   <span className="mr-1">•</span>
                   <span>Square format recommended (1:1 ratio)</span>

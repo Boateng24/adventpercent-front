@@ -13,7 +13,8 @@ import {
   Download,
   ChevronUp,
   ChevronDown,
-  X
+  X,
+  MoreHorizontal
 } from "lucide-react";
 import { useHotkeys } from "react-hotkeys-hook";
 import PropTypes from "prop-types";
@@ -40,18 +41,32 @@ const AudioPlayer = ({
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const audioRef = useRef(null);
   const progressRef = useRef(null);
 
-  // Keyboard shortcuts
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Keyboard shortcuts (disabled on mobile)
   useHotkeys('space', (e) => {
-    e.preventDefault();
-    onPlayPause();
+    if (!isMobile) {
+      e.preventDefault();
+      onPlayPause();
+    }
   });
-  useHotkeys('ctrl+right', onNext);
-  useHotkeys('ctrl+left', onPrevious);
-  useHotkeys('ctrl+up', () => setVolume(prev => Math.min(1, prev + 0.1)));
-  useHotkeys('ctrl+down', () => setVolume(prev => Math.max(0, prev - 0.1)));
+  useHotkeys('ctrl+right', () => !isMobile && onNext());
+  useHotkeys('ctrl+left', () => !isMobile && onPrevious());
+  useHotkeys('ctrl+up', () => !isMobile && setVolume(prev => Math.min(1, prev + 0.1)));
+  useHotkeys('ctrl+down', () => !isMobile && setVolume(prev => Math.max(0, prev - 0.1)));
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -166,11 +181,10 @@ const AudioPlayer = ({
     onSongDownload?.(currentSong);
   };
 
-
   const defaultImage = "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400";
 
   if (!currentSong) {
-    return null; // Don't show player when no song is selected
+    return null;
   }
 
   return (
@@ -185,7 +199,7 @@ const AudioPlayer = ({
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           exit={{ y: 100 }}
-          className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 z-40"
+          className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-2xl border-t border-gray-200 dark:border-gray-700 z-40"
         >
           {/* Progress Bar */}
           <div 
@@ -201,19 +215,20 @@ const AudioPlayer = ({
             </div>
           </div>
 
-          {/* Close Button - Added this button */}
-            <motion.button
-  whileHover={{ scale: 1.1 }}
-  whileTap={{ scale: 0.9 }}
-  onClick={onClose}
-  className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-blue-500 shadow-sm"
-  aria-label="Close player"
->
-  <X size={18} className="text-white" />
-</motion.button>
-          <div className="flex items-center justify-between px-4 py-3">
+          {/* Close Button */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onClose}
+            className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-blue-500 shadow-sm z-10"
+            aria-label="Close player"
+          >
+            <X size={14} className="text-white" />
+          </motion.button>
+
+          <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3">
             {/* Song Info */}
-            <div className="flex items-center space-x-4 flex-1 min-w-0">
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="relative cursor-pointer"
@@ -222,27 +237,28 @@ const AudioPlayer = ({
                 <img
                   src={currentSong.image || defaultImage}
                   alt={currentSong.title}
-                  className="w-14 h-14 rounded-lg object-cover shadow-lg"
+                  className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg object-cover shadow-lg"
                   onError={(e) => {
                     e.target.src = defaultImage;
                   }}
                 />
                 {isLoading && (
                   <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                    <div className="animate-spin rounded-full h-4 w-4 sm:h-6 sm:w-6 border-b-2 border-white" />
                   </div>
                 )}
               </motion.div>
               
               <div className="min-w-0 flex-1">
-                <h4 className="font-semibold text-gray-900 truncate">
+                <h4 className="font-semibold text-gray-900 dark:text-white truncate text-sm sm:text-base">
                   {currentSong.title || "Unknown Title"}
                 </h4>
-                <p className="text-sm text-gray-600 truncate">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                   {currentSong.artist || "Unknown Artist"}
                 </p>
               </div>
 
+              {/* Action buttons - Hidden on mobile, shown on tablet+ */}
               <div className="hidden md:flex items-center space-x-2">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -252,7 +268,7 @@ const AudioPlayer = ({
                     isLiked ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
                   }`}
                 >
-                  <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} />
+                  <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} />
                 </motion.button>
 
                 <motion.button
@@ -261,32 +277,33 @@ const AudioPlayer = ({
                   onClick={handleDownload}
                   className="p-2 rounded-full text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
                 >
-                  <Download size={18} />
+                  <Download size={16} />
                 </motion.button>
               </div>
             </div>
 
             {/* Controls */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
+              {/* Shuffle - Hidden on mobile */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsShuffle(!isShuffle)}
-                className={`p-2 rounded-full transition-colors ${
+                className={`hidden sm:flex p-2 rounded-full transition-colors ${
                   isShuffle ? 'text-green-500 bg-green-50' : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
-                <Shuffle size={18} />
+                <Shuffle size={16} />
               </motion.button>
 
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onPrevious}
-                className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="p-1 sm:p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 disabled={currentIndex === 0 && !isShuffle}
               >
-                <SkipBack size={20} />
+                <SkipBack size={16} className="sm:w-5 sm:h-5" />
               </motion.button>
 
               <motion.button
@@ -294,14 +311,14 @@ const AudioPlayer = ({
                 whileTap={{ scale: 0.95 }}
                 onClick={onPlayPause}
                 disabled={isLoading}
-                className="p-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-full hover:shadow-lg transition-all duration-200 disabled:opacity-50"
+                className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-full hover:shadow-lg transition-all duration-200 disabled:opacity-50"
               >
                 {isLoading ? (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-6 sm:w-6 border-b-2 border-white" />
                 ) : isPlaying ? (
-                  <Pause size={24} />
+                  <Pause size={16} className="sm:w-6 sm:h-6" />
                 ) : (
-                  <Play size={24} className="ml-0.5" />
+                  <Play size={16} className="sm:w-6 sm:h-6 ml-0.5" />
                 )}
               </motion.button>
 
@@ -309,31 +326,41 @@ const AudioPlayer = ({
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onNext}
-                className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="p-1 sm:p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 disabled={currentIndex === playlist.length - 1 && !isShuffle}
               >
-                <SkipForward size={20} />
+                <SkipForward size={16} className="sm:w-5 sm:h-5" />
               </motion.button>
 
+              {/* Repeat - Hidden on mobile */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsRepeat(!isRepeat)}
-                className={`p-2 rounded-full transition-colors ${
+                className={`hidden sm:flex p-2 rounded-full transition-colors ${
                   isRepeat ? 'text-green-500 bg-green-50' : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
-                <Repeat size={18} />
+                <Repeat size={16} />
+              </motion.button>
+
+              {/* Mobile More Options */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="sm:hidden p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <MoreHorizontal size={16} />
               </motion.button>
             </div>
 
-            {/* Time and Volume */}
-            <div className="flex items-center space-x-4 flex-1 justify-end">
-              <span className="text-sm text-gray-500 min-w-[40px] text-right">
+            {/* Time and Volume - Hidden on mobile */}
+            <div className="hidden lg:flex items-center space-x-2 xl:space-x-4 flex-1 justify-end">
+              <span className="text-sm text-gray-500 dark:text-gray-400 min-w-[40px] text-right">
                 {formatTime(currentTime)}
               </span>
-              <span className="text-sm text-gray-300">/</span>
-              <span className="text-sm text-gray-500 min-w-[40px]">
+              <span className="text-sm text-gray-300 dark:text-gray-600">/</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 min-w-[40px]">
                 {formatTime(duration)}
               </span>
 
@@ -357,7 +384,7 @@ const AudioPlayer = ({
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}
-                      className="absolute right-0 bottom-full mb-2 bg-white p-3 rounded-lg shadow-xl border border-gray-200"
+                      className="absolute right-0 bottom-full mb-2 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700"
                     >
                       <input
                         type="range"
@@ -384,14 +411,14 @@ const AudioPlayer = ({
             </div>
           </div>
 
-          {/* Expanded Player */}
+          {/* Expanded Player - Hidden on mobile */}
           <AnimatePresence>
-            {isExpanded && (
+            {isExpanded && !isMobile && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="border-t border-gray-100 bg-gray-50 px-4 py-6 overflow-hidden"
+                className="border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-6 overflow-hidden"
               >
                 <div className="max-w-4xl mx-auto">
                   <div className="flex items-center space-x-6">
@@ -404,10 +431,10 @@ const AudioPlayer = ({
                       }}
                     />
                     <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                         {currentSong.title || "Unknown Title"}
                       </h2>
-                      <p className="text-lg text-gray-600 mb-4">
+                      <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
                         {currentSong.artist || "Unknown Artist"}
                       </p>
                       <div className="flex items-center space-x-4">

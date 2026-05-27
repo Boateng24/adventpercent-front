@@ -4,12 +4,12 @@ import { Play, Pause, Heart, Download } from "lucide-react";
 import PropTypes from "prop-types";
 
 const SongCardSkeleton = () => (
-  <div className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
-    <div className="aspect-square bg-gray-200" />
-    <div className="p-4 space-y-2">
-      <div className="h-4 bg-gray-200 rounded w-3/4" />
-      <div className="h-3 bg-gray-200 rounded w-1/2" />
-      <div className="h-3 bg-gray-200 rounded w-1/4" />
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden animate-pulse">
+    <div className="aspect-square bg-gray-200 dark:bg-gray-700" />
+    <div className="p-3 sm:p-4 space-y-2">
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
     </div>
   </div>
 );
@@ -31,7 +31,7 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       whileHover={{ y: -4 }}
-      className="group relative bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden mt-6"
+      className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden mt-4 sm:mt-6"
       style={{ height: 'auto' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -60,11 +60,11 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
               onClick={() => onPlay(song)}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <div className="bg-white/90 backdrop-blur-sm rounded-full p-4 shadow-lg">
+              <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 sm:p-4 shadow-lg">
                 {isPlaying && isCurrentSong ? (
-                  <Pause className="text-gray-900" size={24} />
+                  <Pause className="text-gray-900" size={20} />
                 ) : (
-                  <Play className="text-gray-900 ml-1" size={24} />
+                  <Play className="text-gray-900 ml-1" size={20} />
                 )}
               </div>
             </motion.button>
@@ -72,7 +72,7 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
         </AnimatePresence>
 
         {/* Action Buttons */}
-        <div className="absolute top-3 right-3 flex space-x-2">
+        <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex space-x-1 sm:space-x-2">
           <AnimatePresence>
             {isHovered && (
               <>
@@ -83,9 +83,9 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => onLike(song)}
-                  className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors"
+                  className="bg-white/90 backdrop-blur-sm rounded-full p-1.5 sm:p-2 shadow-lg hover:bg-white transition-colors"
                 >
-                  <Heart size={16} className="text-gray-700" />
+                  <Heart size={14} className="sm:w-4 sm:h-4 text-gray-700" />
                 </motion.button>
                 <motion.button
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -94,9 +94,9 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => onDownload(song)}
-                  className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors"
+                  className="bg-white/90 backdrop-blur-sm rounded-full p-1.5 sm:p-2 shadow-lg hover:bg-white transition-colors"
                 >
-                  <Download size={16} className="text-gray-700" />
+                  <Download size={14} className="sm:w-4 sm:h-4 text-gray-700" />
                 </motion.button>
               </>
             )}
@@ -105,13 +105,13 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
 
         {/* Playing Indicator */}
         {isPlaying && isCurrentSong && (
-          <div className="absolute bottom-3 left-3">
+          <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3">
             <div className="flex items-center space-x-1 bg-green-500 rounded-full px-2 py-1">
               <div className="flex space-x-0.5">
                 {[...Array(3)].map((_, i) => (
                   <motion.div
                     key={i}
-                    className="w-0.5 h-3 bg-white rounded-full"
+                    className="w-0.5 h-2 sm:h-3 bg-white rounded-full"
                     animate={{
                       height: [6, 12, 6],
                     }}
@@ -123,23 +123,23 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
                   />
                 ))}
               </div>
-              <span className="text-white text-xs font-medium">Playing</span>
+              <span className="text-white text-xs font-medium hidden sm:inline">Playing</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Song Info */}
-      <div className="p-3">
-        <h3 className="font-semibold text-gray-900 truncate mb-1">
+      <div className="p-2 sm:p-3">
+        <h3 className="font-semibold text-gray-900 dark:text-white truncate mb-1 text-sm sm:text-base">
           {song?.title || "Unknown Title"}
         </h3>
-        <div className="flex justify-between items-center"> {/* Added flex container */}
-          <p className="text-gray-600 text-sm truncate">
+        <div className="flex justify-between items-center">
+          <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm truncate flex-1 mr-2">
             {song?.artist || "Unknown Artist"}
           </p>
           {song?.duration && (
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 dark:text-gray-500 text-xs sm:text-sm flex-shrink-0">
               {Math.floor(song.duration / 60)}:{String(song.duration % 60).padStart(2, "0")}
             </p>
           )}
@@ -172,19 +172,19 @@ const SongGrid = ({
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center justify-between"
         >
-          <div className="h-8 bg-gray-200 rounded w-48 animate-pulse" />
-          <div className="h-4 bg-gray-200 rounded w-20 animate-pulse" />
+          <div className="h-6 sm:h-8 bg-gray-200 rounded w-32 sm:w-48 animate-pulse" />
+          <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-20 animate-pulse" />
         </motion.div>
 
         <motion.div 
           layout
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+          className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6"
         >
           {[...Array(10)].map((_, index) => (
             <SongCardSkeleton key={index} />
@@ -196,17 +196,17 @@ const SongGrid = ({
 
   if (!songs.length) {
     return (
-      <div className="text-center py-20">
+      <div className="text-center py-12 sm:py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-md mx-auto"
+          className="max-w-md mx-auto px-4"
         >
-          <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-            <Play className="text-gray-400" size={32} />
+          <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+            <Play className="text-gray-400" size={24} />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No songs available</h3>
-          <p className="text-gray-600">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">No songs available</h3>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Check back later for new music releases, or try refreshing the page.
           </p>
         </motion.div>
@@ -215,18 +215,10 @@ const SongGrid = ({
   }
 
   return (
-    <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="flex items-center justify-between"
-      >
-    
-      </motion.div>
-
+    <div className="space-y-4 sm:space-y-6">
       <motion.div 
         layout
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6"
       >
         <AnimatePresence>
           {songs.map((song, index) => (

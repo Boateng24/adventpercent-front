@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import Sidebar from "../Components/SideBar/SideBar";
 import Header from "../Components/Header/Header";
@@ -11,7 +11,8 @@ import { recordInteraction, getRecommendedSongs } from "../api/songs/songs";
 import downloadSong from "../helpers/download";
 
 const Home = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [trendingOpen, setTrendingOpen] = useState(false);
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playlist, setPlaylist] = useState([]);
@@ -143,81 +144,96 @@ const Home = () => {
   }, [handleSongPlay]);
 
   const handleClosePlayer = useCallback(() => {
-  // Pause audio before closing
-  setIsPlaying(false);
-  // Clear current song to hide player
-  setCurrentSong(null);
-}, []);
+    // Pause audio before closing
+    setIsPlaying(false);
+    // Clear current song to hide player
+    setCurrentSong(null);
+  }, []);
+
+  const handleMenuClick = useCallback(() => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  }, [sidebarCollapsed]);
 
   return (
-    <div className="flex min-h-screen bg-gray-50 w-screen">
-      {/* Sidebar */}
-      <Sidebar 
-        isCollapsed={sidebarCollapsed} 
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 w-screen overflow-x-hidden">
+      {/* Sidebar — overlay mode, slides in from left */}
+      <Sidebar
+        isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        overlay
       />
 
-      {/* Main Content */}
-      <motion.div
-        animate={{
-          marginLeft: sidebarCollapsed ? 80 : 280
-        }}
-        className="flex-1 transition-all duration-300"
-        style={{ marginBottom: currentSong ? '100px' : '0' }} // Add space for player
+      {/* Main Content — always full width */}
+      <div
+        className="flex flex-col min-h-screen"
+        style={{ marginBottom: currentSong ? '80px' : '0' }}
       >
-        {/* Header */}
-        <Header 
+        <Header
           onSearchSong={handleSearchSong}
           songs={songs}
           title="Discover Music"
           subtitle="Find your next favorite song"
+          onMenuClick={handleMenuClick}
+          onTrendingClick={() => setTrendingOpen(true)}
         />
 
-        {/* Content */}
-        <div className="flex gap-6 p-6">
-          {/* Main Content Area */}
-          <div className="flex-1 space-y-8">
-            {/* Music Banner */}
-            <MusicBanner 
-              currentSong={currentSong}
-              isPlaying={isPlaying}
-              onPlayPause={handlePlayPause}
-            />
+        <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 lg:space-y-8">
+          <MusicBanner
+            currentSong={currentSong}
+            isPlaying={isPlaying}
+            onPlayPause={handlePlayPause}
+          />
 
-            {/* Songs Grid */}
-            <SongGrid
-              songs={songs}
-              isLoading={isLoading && page === 1}
-              currentSong={currentSong}
-              isPlaying={isPlaying}
-              onSongPlay={handleSongPlay}
-              onSongLike={handleSongLike}
-              onSongDownload={handleSongDownload}
-            />
+          <SongGrid
+            songs={songs}
+            isLoading={isLoading && page === 1}
+            currentSong={currentSong}
+            isPlaying={isPlaying}
+            onSongPlay={handleSongPlay}
+            onSongLike={handleSongLike}
+            onSongDownload={handleSongDownload}
+          />
 
-            {/* Loading more indicator */}
-            {isLoading && page > 1 && (
-              <div className="text-center py-8">
-                <div className="inline-flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
-                  <span className="text-gray-600">Loading more songs...</span>
-                </div>
+          {isLoading && page > 1 && (
+            <div className="text-center py-6 sm:py-8">
+              <div className="inline-flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
+                <span className="text-gray-600 text-sm sm:text-base">Loading more songs...</span>
               </div>
-            )}
-          </div>
-
-          {/* Trending Sidebar */}
-          <div className="w-80 hidden xl:block">
-            <TrendingSection
-              currentSong={currentSong}
-              isPlaying={isPlaying}
-              onSongPlay={handleSongPlay}
-            />
-          </div>
+            </div>
+          )}
         </div>
-      </motion.div>
+      </div>
 
-      {/* Audio Player - Only show when a song is selected */}
+      {/* Trending Panel — overlay, slides in from right */}
+      <AnimatePresence>
+        {trendingOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-40"
+              onClick={() => setTrendingOpen(false)}
+            />
+            <motion.div
+              initial={{ x: 320 }}
+              animate={{ x: 0 }}
+              exit={{ x: 320 }}
+              transition={{ type: "spring", damping: 28, stiffness: 220 }}
+              className="fixed right-0 top-0 h-full w-80 z-50 shadow-2xl"
+            >
+              <TrendingSection
+                currentSong={currentSong}
+                isPlaying={isPlaying}
+                onSongPlay={handleSongPlay}
+                onClose={() => setTrendingOpen(false)}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {currentSong && (
         <AudioPlayer
           currentSong={currentSong}

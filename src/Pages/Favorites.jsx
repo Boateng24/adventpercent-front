@@ -5,41 +5,29 @@ import Header from "../Components/Header/Header";
 import Sidebar from "../Components/SideBar/SideBar";
 import AudioPlayer from "../Components/AudioPlayer/AudioPlayer";
 import { toast } from "react-toastify";
+import { getFavorites, removeFromFavorites } from "../api/songs/songs";
 
 const Favorites = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [favorites, setFavorites] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Mock favorites data - in real app, this would come from API/localStorage
   useEffect(() => {
-    const mockFavorites = [
-      {
-        id: 1,
-        title: "Amazing Grace",
-        artist: "SDA Choir",
-        album: "Hymns Collection",
-        duration: 240,
-        image: "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400",
-        track: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-        genre: "Hymn",
-        dateAdded: "2024-01-15"
-      },
-      {
-        id: 2,
-        title: "How Great Thou Art",
-        artist: "Adventist Quartet",
-        album: "Classic Hymns",
-        duration: 195,
-        image: "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400",
-        track: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-        genre: "Quartet",
-        dateAdded: "2024-01-10"
+    const fetchFavorites = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getFavorites();
+        setFavorites(data);
+      } catch {
+        toast.error("Failed to load favorites");
+      } finally {
+        setIsLoading(false);
       }
-    ];
-    setFavorites(mockFavorites);
+    };
+    fetchFavorites();
   }, []);
 
   const handleSongPlay = (song) => {
@@ -78,14 +66,17 @@ const Favorites = () => {
     }
   };
 
-  const handleRemoveFromFavorites = (songId) => {
-    setFavorites(prev => prev.filter(song => song.id !== songId));
-    toast.success("Removed from favorites");
-    
-    // If currently playing song is removed, stop playback
-    if (currentSong?.id === songId) {
-      setCurrentSong(null);
-      setIsPlaying(false);
+  const handleRemoveFromFavorites = async (songId) => {
+    try {
+      await removeFromFavorites(songId);
+      setFavorites(prev => prev.filter(song => song.id !== songId));
+      toast.success("Removed from favorites");
+      if (currentSong?.id === songId) {
+        setCurrentSong(null);
+        setIsPlaying(false);
+      }
+    } catch {
+      toast.error("Failed to remove from favorites");
     }
   };
 
@@ -108,8 +99,8 @@ const Favorites = () => {
       <div className="w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
         <Heart className="text-red-500" size={40} />
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-2">No favorites yet</h3>
-      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No favorites yet</h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
         Start adding songs to your favorites by clicking the heart icon on any song you love.
       </p>
       <button
@@ -122,7 +113,7 @@ const Favorites = () => {
   );
 
   return (
-    <div className="flex h-screen bg-gray-50 w-screen">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 w-screen">
       <Sidebar 
         isCollapsed={sidebarCollapsed} 
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -143,7 +134,12 @@ const Favorites = () => {
         />
 
         <div className="p-6">
-          {favorites.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+              <span className="ml-3 text-gray-600 dark:text-gray-400">Loading your favorites...</span>
+            </div>
+          ) : favorites.length === 0 ? (
             <EmptyState />
           ) : (
             <>
@@ -183,16 +179,16 @@ const Favorites = () => {
               </motion.div>
 
               {/* Songs List */}
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="divide-y divide-gray-100">
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
+                <div className="divide-y divide-gray-100 dark:divide-gray-700">
                   {favorites.map((song, index) => (
                     <motion.div
                       key={song.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                        currentSong?.id === song.id ? 'bg-green-50' : ''
+                      className={`flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors ${
+                        currentSong?.id === song.id ? 'bg-green-50 dark:bg-green-900/20' : ''
                       }`}
                       onClick={() => handleSongPlay(song)}
                     >
@@ -217,7 +213,7 @@ const Favorites = () => {
                           </div>
                         ) : (
                           <span className={`text-sm ${
-                            currentSong?.id === song.id ? 'text-green-600 font-medium' : 'text-gray-400'
+                            currentSong?.id === song.id ? 'text-green-600 font-medium' : 'text-gray-400 dark:text-gray-500'
                           }`}>
                             {index + 1}
                           </span>
@@ -234,24 +230,24 @@ const Favorites = () => {
                       {/* Song Info */}
                       <div className="flex-1 min-w-0">
                         <h3 className={`font-medium truncate ${
-                          currentSong?.id === song.id ? 'text-green-600' : 'text-gray-900'
+                          currentSong?.id === song.id ? 'text-green-600' : 'text-gray-900 dark:text-white'
                         }`}>
                           {song.title}
                         </h3>
-                        <p className="text-sm text-gray-500 truncate">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                           {song.artist} • {song.album}
                         </p>
                       </div>
 
                       {/* Genre */}
                       <div className="hidden md:block mr-4">
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-full">
                           {song.genre}
                         </span>
                       </div>
 
                       {/* Duration */}
-                      <div className="text-sm text-gray-400 mr-4">
+                      <div className="text-sm text-gray-400 dark:text-gray-500 mr-4">
                         {formatDuration(song.duration)}
                       </div>
 
@@ -262,7 +258,7 @@ const Favorites = () => {
                             e.stopPropagation();
                             handleDownload(song);
                           }}
-                          className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
                         >
                           <Download size={16} className="text-gray-400 hover:text-blue-500" />
                         </button>
@@ -271,7 +267,7 @@ const Favorites = () => {
                             e.stopPropagation();
                             handleRemoveFromFavorites(song.id);
                           }}
-                          className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
                         >
                           <Trash2 size={16} className="text-gray-400 hover:text-red-500" />
                         </button>

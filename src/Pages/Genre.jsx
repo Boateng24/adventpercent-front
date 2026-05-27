@@ -7,6 +7,7 @@ import Sidebar from "../Components/SideBar/SideBar";
 import AudioPlayer from "../Components/AudioPlayer/AudioPlayer";
 import SongGrid from "../Components/SongGrid/SongGrid";
 import { toast } from "react-toastify";
+import { getSongsByGenre } from "../api/songs/songs";
 
 const Genre = () => {
   const { genre } = useParams();
@@ -58,49 +59,20 @@ const Genre = () => {
     icon: "🎵"
   };
 
-  // Mock data for genre songs
   useEffect(() => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      const mockSongs = [
-        {
-          id: 1,
-          title: `${currentGenre.name} Song 1`,
-          artist: "SDA Artists",
-          album: `${currentGenre.name} Collection`,
-          duration: 240,
-          image: "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400",
-          track: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-          genre: currentGenre.name
-        },
-        {
-          id: 2,
-          title: `${currentGenre.name} Song 2`,
-          artist: "Adventist Musicians",
-          album: `${currentGenre.name} Favorites`,
-          duration: 195,
-          image: "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400",
-          track: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-          genre: currentGenre.name
-        },
-        {
-          id: 3,
-          title: `${currentGenre.name} Song 3`,
-          artist: "Church Choir",
-          album: `Best of ${currentGenre.name}`,
-          duration: 210,
-          image: "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400",
-          track: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-          genre: currentGenre.name
-        }
-      ];
-      
-      setSongs(mockSongs);
-      setIsLoading(false);
-    }, 1000);
-  }, [genre, currentGenre.name]);
+    const fetchGenreSongs = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getSongsByGenre(genre);
+        setSongs(data);
+      } catch {
+        toast.error(`Failed to load ${currentGenre.name} songs`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchGenreSongs();
+  }, [genre]);
 
   const handleSongPlay = (song) => {
     const songIndex = songs.findIndex(s => s.id === song.id);
@@ -155,8 +127,8 @@ const Genre = () => {
       <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
         <Music className="text-gray-400" size={40} />
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-2">No songs in this genre yet</h3>
-      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No songs in this genre yet</h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
         We&apos;re working on adding more {currentGenre.name.toLowerCase()} music to our collection.
       </p>
       <button
@@ -169,7 +141,7 @@ const Genre = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50 w-screen">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 w-screen">
       <Sidebar 
         isCollapsed={sidebarCollapsed} 
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -194,7 +166,7 @@ const Genre = () => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`bg-gradient-to-r ${currentGenre.color} rounded-xl p-8 mb-8 text-white`}
+            className="bg-gradient-to-r from-green-500 to-blue-500 rounded-xl p-8 mb-8 text-white"
           >
             <div className="flex items-center space-x-6">
               <div className="text-6xl">{currentGenre.icon}</div>
@@ -226,12 +198,12 @@ const Genre = () => {
                   <span>Play All</span>
                 </button>
                 
-                <button className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-full font-medium hover:bg-gray-50 transition-all">
+                <button className="flex items-center space-x-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-full font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
                   <Heart size={20} />
                   <span>Save Genre</span>
                 </button>
-                
-                <button className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-full font-medium hover:bg-gray-50 transition-all">
+
+                <button className="flex items-center space-x-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-full font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
                   <Download size={20} />
                   <span>Download All</span>
                 </button>
@@ -243,7 +215,7 @@ const Genre = () => {
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-              <span className="ml-3 text-gray-600">Loading {currentGenre.name.toLowerCase()} music...</span>
+              <span className="ml-3 text-gray-600 dark:text-gray-400">Loading {currentGenre.name.toLowerCase()} music...</span>
             </div>
           ) : songs.length === 0 ? (
             <EmptyState />

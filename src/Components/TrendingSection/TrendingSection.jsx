@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrendingUp, Play, Pause, Clock, Music } from "lucide-react";
+import { TrendingUp, Play, Pause, Clock, Music, X } from "lucide-react";
 import { truncateString } from "../../helpers/truncate";
 import { getTrendingSongs } from "../../api/songs/songs";
 import PropTypes from "prop-types";
 
-const TrendingSection = ({ currentSong, isPlaying, onSongPlay }) => {
+const TrendingSection = ({ currentSong, isPlaying, onSongPlay, onClose }) => {
   const [trending, setTrending] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -103,17 +103,29 @@ const TrendingSection = ({ currentSong, isPlaying, onSongPlay }) => {
   );
 
   return (
-    <div className="sticky top-0 bg-white rounded-xl shadow-lg overflow-hidden h-screen">
+    <div className="sticky top-0 bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden h-screen">
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6">
-        <div className="flex items-center space-x-3">
-          <div className="bg-white/20 rounded-full p-2">
-            <TrendingUp className="text-white" size={24} />
+      <div className="bg-gradient-to-r from-green-500 to-blue-500 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/20 rounded-full p-2">
+              <TrendingUp className="text-white" size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Trending This Week</h2>
+              <p className="text-green-100 text-sm">Most popular songs right now</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-white">Trending This Week</h2>
-            <p className="text-orange-100 text-sm">Most popular songs right now</p>
-          </div>
+          {onClose && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+            >
+              <X className="text-white" size={18} />
+            </motion.button>
+          )}
         </div>
       </div>
 
@@ -141,12 +153,12 @@ const TrendingSection = ({ currentSong, isPlaying, onSongPlay }) => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: index * 0.1 }}
-                  className="group flex items-center p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="group flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                   onClick={() => onSongPlay?.(song)}
                 >
                   {/* Rank */}
                   <div className="flex-shrink-0 w-8 text-center">
-                    <span className="text-lg font-bold text-gray-400 group-hover:text-orange-500 transition-colors">
+                    <span className="text-lg font-bold text-gray-400 dark:text-gray-500 group-hover:text-green-500 transition-colors">
                       {index + 1}
                     </span>
                   </div>
@@ -179,7 +191,7 @@ const TrendingSection = ({ currentSong, isPlaying, onSongPlay }) => {
 
                   {/* Song Info */}
                   <div className="flex-1 ml-4 min-w-0">
-  <div className="font-medium text-gray-900 group-hover:text-orange-600 transition-colors">
+  <div className="font-medium text-gray-900 dark:text-white group-hover:text-green-500 transition-colors">
     {song?.title ? truncateString(song.title, 20) : "Unknown Title"}
     {song.rank <= 3 && (
       <span className="ml-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-0.5 rounded-full">
@@ -187,7 +199,7 @@ const TrendingSection = ({ currentSong, isPlaying, onSongPlay }) => {
       </span>
     )}
   </div>
-  <div className="text-sm text-gray-500">
+  <div className="text-sm text-gray-500 dark:text-gray-400">
     {song?.artist ? truncateString(song.artist, 18) : "Unknown Artist"}
     {song.playVelocity > 0.5 && (
       <span className="ml-2 text-green-500 flex items-center">
@@ -199,7 +211,7 @@ const TrendingSection = ({ currentSong, isPlaying, onSongPlay }) => {
 </div>
 
                   {/* Duration */}
-                  <div className="flex-shrink-0 flex items-center text-gray-400 text-sm">
+                  <div className="flex-shrink-0 flex items-center text-gray-400 dark:text-gray-500 text-sm">
                     <Clock size={14} className="mr-1" />
                     {song?.duration ? (
                       `${Math.floor(song.duration / 60)}:${String(song.duration % 60).padStart(2, "0")}`
@@ -220,7 +232,8 @@ const TrendingSection = ({ currentSong, isPlaying, onSongPlay }) => {
 TrendingSection.propTypes = {
   currentSong: PropTypes.object,
   isPlaying: PropTypes.bool,
-  onSongPlay: PropTypes.func
+  onSongPlay: PropTypes.func,
+  onClose: PropTypes.func,
 };
 
 export default TrendingSection;

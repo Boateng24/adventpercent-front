@@ -1,10 +1,31 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
         'inter': ['Inter', 'sans-serif'],
+      },
+      screens: {
+        'xs': '475px',
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1536px',
+        '3xl': '1600px',
+        // Custom breakpoints for specific devices
+        'mobile': {'max': '767px'},
+        'tablet': {'min': '768px', 'max': '1023px'},
+        'laptop': {'min': '1024px', 'max': '1279px'},
+        'desktop': {'min': '1280px'},
+        // iPhone specific
+        'iphone-se': {'raw': '(max-width: 375px)'},
+        'iphone': {'raw': '(max-width: 414px)'},
+        // iPad specific
+        'ipad': {'raw': '(min-width: 768px) and (max-width: 1024px)'},
+        'ipad-pro': {'raw': '(min-width: 1024px) and (max-width: 1366px)'},
       },
       colors: {
         primary: {
@@ -84,6 +105,10 @@ export default {
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',
+        // Mobile-specific spacing
+        'mobile-safe': 'env(safe-area-inset-bottom)',
+        'mobile-header': '3.5rem',
+        'mobile-player': '5rem',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
@@ -104,13 +129,12 @@ export default {
         'inner-lg': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
         'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
         'glow-lg': '0 0 40px rgba(59, 130, 246, 0.3)',
+        // Mobile-specific shadows
+        'mobile': '0 2px 8px rgba(0, 0, 0, 0.1)',
+        'mobile-lg': '0 4px 16px rgba(0, 0, 0, 0.15)',
       },
       borderRadius: {
         '4xl': '2rem',
-      },
-      screens: {
-        'xs': '475px',
-        '3xl': '1600px',
       },
       zIndex: {
         '60': '60',
@@ -118,6 +142,25 @@ export default {
         '80': '80',
         '90': '90',
         '100': '100',
+      },
+      fontSize: {
+        // Responsive font sizes
+        'xs-mobile': ['0.75rem', { lineHeight: '1rem' }],
+        'sm-mobile': ['0.875rem', { lineHeight: '1.25rem' }],
+        'base-mobile': ['1rem', { lineHeight: '1.5rem' }],
+        'lg-mobile': ['1.125rem', { lineHeight: '1.75rem' }],
+        'xl-mobile': ['1.25rem', { lineHeight: '1.75rem' }],
+      },
+      maxWidth: {
+        'mobile': '100vw',
+        'tablet': '768px',
+        'laptop': '1024px',
+        'desktop': '1280px',
+      },
+      minHeight: {
+        'mobile-screen': '100vh',
+        'mobile-content': 'calc(100vh - 3.5rem)',
+        'mobile-with-player': 'calc(100vh - 8.5rem)',
       },
     },
   },
