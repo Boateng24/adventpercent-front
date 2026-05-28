@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, CheckCircle, XCircle, Clock, User } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import Header from "../Components/Header/Header";
 import Sidebar from "../Components/SideBar/SideBar";
-import AudioPlayer from "../Components/AudioPlayer/AudioPlayer";
 import { toast } from "react-toastify";
 import { getPendingSongs, approveSong, rejectSong } from "../api/admin/admin";
+import { setQueue, togglePlayPause, closePlayer } from "../features/queue.slice";
 
 const AdminReview = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const dispatch = useDispatch();
+  const { items: queueItems, currentIndex: queueIndex, isPlaying } = useSelector((s) => s.queue);
+  const currentSong = queueItems[queueIndex] ?? null;
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [pendingSongs, setPendingSongs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentSong, setCurrentSong] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [processingId, setProcessingId] = useState(null);
 
   useEffect(() => {
@@ -31,44 +33,21 @@ const AdminReview = () => {
     fetchPending();
   }, []);
 
+  const handleMenuClick = () => setSidebarCollapsed((c) => !c);
+
   const handleSongPlay = (song) => {
     const songIndex = pendingSongs.findIndex((s) => s.id === song.id);
     if (currentSong?.id === song.id) {
-      setIsPlaying(!isPlaying);
+      dispatch(togglePlayPause());
     } else {
-      setCurrentSong(song);
-      setCurrentIndex(songIndex !== -1 ? songIndex : 0);
-      setIsPlaying(true);
+      dispatch(setQueue({ items: pendingSongs, startIndex: songIndex !== -1 ? songIndex : 0 }));
     }
   };
 
-  const handlePlayPause = () => {
-    if (currentSong) setIsPlaying(!isPlaying);
-  };
-
-  const handleNext = () => {
-    if (currentIndex < pendingSongs.length - 1) {
-      const nextIndex = currentIndex + 1;
-      setCurrentIndex(nextIndex);
-      setCurrentSong(pendingSongs[nextIndex]);
-      setIsPlaying(true);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      setCurrentIndex(prevIndex);
-      setCurrentSong(pendingSongs[prevIndex]);
-      setIsPlaying(true);
-    }
-  };
-
-  const removeSongFromQueue = (songId) => {
+  const removeSongFromList = (songId) => {
     setPendingSongs((prev) => prev.filter((s) => s.id !== songId));
     if (currentSong?.id === songId) {
-      setCurrentSong(null);
-      setIsPlaying(false);
+      dispatch(closePlayer());
     }
   };
 
@@ -77,7 +56,7 @@ const AdminReview = () => {
     setProcessingId(song.id);
     try {
       await approveSong(song.id);
-      removeSongFromQueue(song.id);
+      removeSongFromList(song.id);
       toast.success(`"${song.title}" approved and is now live`);
     } catch {
       toast.error("Failed to approve song");
@@ -91,7 +70,7 @@ const AdminReview = () => {
     setProcessingId(song.id);
     try {
       await rejectSong(song.id);
-      removeSongFromQueue(song.id);
+      removeSongFromList(song.id);
       toast.info(`"${song.title}" has been rejected`);
     } catch {
       toast.error("Failed to reject song");
@@ -131,11 +110,11 @@ const AdminReview = () => {
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        overlay
       />
 
-      <motion.div
-        animate={{ marginLeft: sidebarCollapsed ? 80 : 280 }}
-        className="flex-1 transition-all duration-300 overflow-y-auto"
+      <div
+        className="flex-1 overflow-y-auto min-h-screen"
         style={{ marginBottom: currentSong ? "100px" : "0" }}
       >
         <Header
@@ -143,9 +122,10 @@ const AdminReview = () => {
           songs={pendingSongs}
           title="Admin Review"
           subtitle="Approve or reject uploaded songs"
+          onMenuClick={handleMenuClick}
         />
 
-        <div className="p-6">
+        <div className="p-3 sm:p-4 lg:p-6">
           {/* Banner */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -339,23 +319,8 @@ const AdminReview = () => {
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
-      {currentSong && (
-        <AudioPlayer
-          currentSong={currentSong}
-          isPlaying={isPlaying}
-          onPlayPause={handlePlayPause}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          playlist={pendingSongs}
-          currentIndex={currentIndex}
-          onClose={() => {
-            setCurrentSong(null);
-            setIsPlaying(false);
-          }}
-        />
-      )}
     </div>
   );
 };

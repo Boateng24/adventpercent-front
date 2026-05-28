@@ -1,14 +1,14 @@
 import Cookies from "js-cookie";
 
-// export const authBase = "https://adventpercent.onrender.com/auth";
-// export const songBase = "https://adventpercent.onrender.com/songs";
-// export const uploadBase = "https://adventpercent.onrender.com/uploadsongs";
-// export const adminBase = "https://adventpercent.onrender.com/admin";
+const BASE = import.meta.env.VITE_API_BASE;
 
-export const authBase = "http://localhost:5000/auth";
-export const songBase = "http://localhost:5000/songs";
-export const uploadBase = "http://localhost:5000/uploadsongs"
-export const adminBase = "http://localhost:5000/admin"
+export const authBase           = `${BASE}/auth`;
+export const songBase           = `${BASE}/songs`;
+export const uploadBase         = `${BASE}/uploadsongs`;
+export const adminBase          = `${BASE}/admin`;
+export const playlistBase       = `${BASE}/playlists`;
+export const favoritesBase      = `${BASE}/favorites`;
+export const recentlyPlayedBase = `${BASE}/recently-played`;
 
 export const getAuthHeaders = () => ({
   headers: { Authorization: `Bearer ${Cookies.get("token")}` },

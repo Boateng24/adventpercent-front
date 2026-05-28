@@ -2,61 +2,39 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams } from "react-router-dom";
 import { Music, Play, Heart, Download } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import Header from "../Components/Header/Header";
 import Sidebar from "../Components/SideBar/SideBar";
-import AudioPlayer from "../Components/AudioPlayer/AudioPlayer";
 import SongGrid from "../Components/SongGrid/SongGrid";
 import { toast } from "react-toastify";
-import { getSongsByGenre } from "../api/songs/songs";
+import { getSongsByGenre, addToFavorites, removeFromFavorites } from "../api/songs/songs";
+import { setQueue, togglePlayPause } from "../features/queue.slice";
+import downloadSong from "../helpers/download";
 
 const Genre = () => {
   const { genre } = useParams();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [songs, setSongs] = useState([]);
-  const [currentSong, setCurrentSong] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { items: queueItems, currentIndex: queueIndex, isPlaying } = useSelector((s) => s.queue);
+  const currentSong = queueItems[queueIndex] ?? null;
 
-  // Genre information
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [songs, setSongs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [likedSongIds, setLikedSongIds] = useState(new Set());
+
   const genreInfo = {
-    quartet: {
-      name: "Quartet",
-      description: "Beautiful four-part harmony performances",
-      color: "from-blue-500 to-indigo-500",
-      icon: "🎵"
-    },
-    chorale: {
-      name: "Chorale",
-      description: "Traditional choir arrangements and performances",
-      color: "from-green-500 to-teal-500",
-      icon: "🎼"
-    },
-    acapella: {
-      name: "Acapella",
-      description: "Pure vocal performances without instruments",
-      color: "from-purple-500 to-pink-500",
-      icon: "🎤"
-    },
-    oldtimers: {
-      name: "Old Timers",
-      description: "Classic hymns and traditional songs",
-      color: "from-amber-500 to-orange-500",
-      icon: "📻"
-    },
-    live: {
-      name: "Live Performance",
-      description: "Recorded live performances and concerts",
-      color: "from-red-500 to-rose-500",
-      icon: "🎪"
-    }
+    quartet: { name: "Quartet", description: "Beautiful four-part harmony performances", color: "from-blue-500 to-indigo-500", icon: "🎵" },
+    chorale: { name: "Chorale", description: "Traditional choir arrangements and performances", color: "from-green-500 to-teal-500", icon: "🎼" },
+    acapella: { name: "Acapella", description: "Pure vocal performances without instruments", color: "from-purple-500 to-pink-500", icon: "🎤" },
+    oldtimers: { name: "Old Timers", description: "Classic hymns and traditional songs", color: "from-amber-500 to-orange-500", icon: "📻" },
+    live: { name: "Live Performance", description: "Recorded live performances and concerts", color: "from-red-500 to-rose-500", icon: "🎪" },
   };
 
   const currentGenre = genreInfo[genre] || {
     name: genre?.charAt(0).toUpperCase() + genre?.slice(1) || "Unknown",
     description: "Music in this genre",
     color: "from-gray-500 to-gray-600",
-    icon: "🎵"
+    icon: "🎵",
   };
 
   useEffect(() => {
@@ -72,50 +50,52 @@ const Genre = () => {
       }
     };
     fetchGenreSongs();
-  }, [genre]);
+  }, [genre]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleMenuClick = () => setSidebarCollapsed((c) => !c);
 
   const handleSongPlay = (song) => {
     const songIndex = songs.findIndex(s => s.id === song.id);
-    
     if (currentSong?.id === song.id) {
-      setIsPlaying(!isPlaying);
+      dispatch(togglePlayPause());
     } else {
-      setCurrentSong(song);
-      setCurrentIndex(songIndex !== -1 ? songIndex : 0);
-      setIsPlaying(true);
+      dispatch(setQueue({ items: songs, startIndex: songIndex !== -1 ? songIndex : 0 }));
     }
   };
 
-  const handlePlayPause = () => {
-    if (currentSong) {
-      setIsPlaying(!isPlaying);
+  const handleSongLike = async (song) => {
+    const alreadyLiked = likedSongIds.has(song.id);
+    setLikedSongIds((prev) => {
+      const next = new Set(prev);
+      alreadyLiked ? next.delete(song.id) : next.add(song.id);
+      return next;
+    });
+    try {
+      if (alreadyLiked) {
+        await removeFromFavorites(song.id);
+        toast.success(`Removed "${song.title}" from favorites`);
+      } else {
+        await addToFavorites(song.id);
+        toast.success(`Added "${song.title}" to favorites!`);
+      }
+    } catch {
+      setLikedSongIds((prev) => {
+        const next = new Set(prev);
+        alreadyLiked ? next.add(song.id) : next.delete(song.id);
+        return next;
+      });
+      toast.error("Failed to update favorites");
     }
-  };
-
-  const handleNext = () => {
-    if (currentIndex < songs.length - 1) {
-      const nextIndex = currentIndex + 1;
-      setCurrentIndex(nextIndex);
-      setCurrentSong(songs[nextIndex]);
-      setIsPlaying(true);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      setCurrentIndex(prevIndex);
-      setCurrentSong(songs[prevIndex]);
-      setIsPlaying(true);
-    }
-  };
-
-  const handleSongLike = (song) => {
-    toast.success(`Added "${song.title}" to favorites!`);
   };
 
   const handleSongDownload = (song) => {
-    toast.success(`Downloading "${song.title}"`);
+    if (song.track && song.title) {
+      downloadSong(song.track, song.title, (progress) => {
+        if (progress === 100) toast.success(`Downloaded "${song.title}" successfully!`);
+      });
+    } else {
+      toast.error("Unable to download this song");
+    }
   };
 
   const EmptyState = () => (
@@ -142,41 +122,40 @@ const Genre = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 w-screen">
-      <Sidebar 
-        isCollapsed={sidebarCollapsed} 
+      <Sidebar
+        isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        overlay
       />
 
-      <motion.div
-        animate={{
-          marginLeft: sidebarCollapsed ? 80 : 280
-        }}
-        className="flex-1 transition-all duration-300"
+      <div
+        className="flex-1"
         style={{ marginBottom: currentSong ? '100px' : '0' }}
       >
-        <Header 
+        <Header
           onSearchSong={handleSongPlay}
           songs={songs}
           title={currentGenre.name}
           subtitle={currentGenre.description}
+          onMenuClick={handleMenuClick}
         />
 
-        <div className="p-6">
+        <div className="p-3 sm:p-4 lg:p-6">
           {/* Genre Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-gradient-to-r from-green-500 to-blue-500 rounded-xl p-8 mb-8 text-white"
           >
-            <div className="flex items-center space-x-6">
-              <div className="text-6xl">{currentGenre.icon}</div>
+            <div className="flex items-start sm:items-center space-x-3 sm:space-x-6">
+              <div className="text-4xl sm:text-6xl">{currentGenre.icon}</div>
               <div>
-                <h1 className="text-4xl font-bold mb-2">{currentGenre.name}</h1>
-                <p className="text-xl opacity-90 mb-4">{currentGenre.description}</p>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">{currentGenre.name}</h1>
+                <p className="text-base sm:text-xl opacity-90 mb-4">{currentGenre.description}</p>
                 <div className="flex items-center space-x-4 text-sm opacity-80">
                   <span>{songs.length} songs</span>
                   <span>•</span>
-                  <span>{Math.floor(songs.reduce((acc, song) => acc + song.duration, 0) / 60)} minutes</span>
+                  <span>{Math.floor(songs.reduce((acc, song) => acc + (song.duration ?? 0), 0) / 60)} minutes</span>
                 </div>
               </div>
             </div>
@@ -197,7 +176,7 @@ const Genre = () => {
                   <Play size={24} />
                   <span>Play All</span>
                 </button>
-                
+
                 <button className="flex items-center space-x-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-full font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
                   <Heart size={20} />
                   <span>Save Genre</span>
@@ -228,25 +207,12 @@ const Genre = () => {
               onSongPlay={handleSongPlay}
               onSongLike={handleSongLike}
               onSongDownload={handleSongDownload}
+              likedSongIds={likedSongIds}
               title={`${currentGenre.name} Collection`}
             />
           )}
         </div>
-      </motion.div>
-
-      {currentSong && (
-        <AudioPlayer
-          currentSong={currentSong}
-          isPlaying={isPlaying}
-          onPlayPause={handlePlayPause}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          playlist={songs}
-          currentIndex={currentIndex}
-          onSongLike={handleSongLike}
-          onSongDownload={handleSongDownload}
-        />
-      )}
+      </div>
     </div>
   );
 };

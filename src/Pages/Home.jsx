@@ -1,51 +1,43 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
 import Sidebar from "../Components/SideBar/SideBar";
 import Header from "../Components/Header/Header";
 import MusicBanner from "../Components/MusicBanner/MusicBanner";
 import SongGrid from "../Components/SongGrid/SongGrid";
 import TrendingSection from "../Components/TrendingSection/TrendingSection";
-import AudioPlayer from "../Components/AudioPlayer/AudioPlayer";
-import { recordInteraction, getRecommendedSongs } from "../api/songs/songs";
+import { recordInteraction, addToFavorites, removeFromFavorites, getPlaylists } from "../api/songs/songs";
+import { fetchSongsPage, isCacheFresh } from "../features/songs.slice";
+import { setQueue, togglePlayPause } from "../features/queue.slice";
+import AddToPlaylistModal from "../Components/AddToPlaylistModal/AddToPlaylistModal";
 import downloadSong from "../helpers/download";
 
 const Home = () => {
+  const dispatch = useDispatch();
+  const { items: songs, page, hasMore, isLoading, lastFetched } = useSelector((state) => state.songs);
+  const { items: queueItems, currentIndex: queueIndex, isPlaying } = useSelector((s) => s.queue);
+  const currentSong = queueItems[queueIndex] ?? null;
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [trendingOpen, setTrendingOpen] = useState(false);
-  const [currentSong, setCurrentSong] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playlist, setPlaylist] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [songs, setSongs] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [likedSongIds, setLikedSongIds] = useState(new Set());
+  const [playlists, setPlaylists] = useState([]);
+  const [addToPlaylistTarget, setAddToPlaylistTarget] = useState(null);
 
-  // Fetch songs
+  // Fetch page 1 only when cache is stale or empty
   useEffect(() => {
-    const fetchSongs = async () => {
-      try {
-        setIsLoading(true);
-        const fetchedSongs = await getRecommendedSongs(page);
-        if (fetchedSongs && fetchedSongs.length > 0) {
-          setSongs(prev => page === 1 ? fetchedSongs : [...prev, ...fetchedSongs]);
-          setPlaylist(prev => page === 1 ? fetchedSongs : [...prev, ...fetchedSongs]);
-        } else {
-          setHasMore(false);
-        }
-      } catch (error) {
-        console.error("Error fetching songs:", error);
-        toast.error("Failed to load songs");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (songs.length === 0 || !isCacheFresh(lastFetched)) {
+      dispatch(fetchSongsPage(1));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    fetchSongs();
-  }, [page]);
+  // Fetch playlists for "Add to Playlist" modal
+  useEffect(() => {
+    getPlaylists().then(setPlaylists).catch(() => {});
+  }, []);
 
-  // Infinite scroll
+  // Infinite scroll — duplicate dispatches are blocked by the `condition` in the slice
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -54,77 +46,52 @@ const Home = () => {
         hasMore &&
         !isLoading
       ) {
-        setPage(prev => prev + 1);
+        dispatch(fetchSongsPage(page + 1));
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasMore, isLoading]);
+  }, [hasMore, isLoading, page, dispatch]);
 
   const handleSongPlay = useCallback(async (song) => {
-    const songIndex = playlist.findIndex(s => s.id === song.id);
-    
+    const songIndex = songs.findIndex(s => s.id === song.id);
     if (currentSong?.id === song.id) {
-      setIsPlaying(!isPlaying);
+      dispatch(togglePlayPause());
       await recordInteraction(song.id, isPlaying ? "skip" : "play");
     } else {
-      setCurrentSong(song);
-      setCurrentIndex(songIndex !== -1 ? songIndex : 0);
-      setIsPlaying(true);
+      dispatch(setQueue({ items: songs, startIndex: songIndex !== -1 ? songIndex : 0 }));
       await recordInteraction(song.id, "play");
     }
-  }, [currentSong, isPlaying, playlist]);
-
-  const handlePlayPause = useCallback(() => {
-    if (currentSong) {
-      setIsPlaying(!isPlaying);
-    }
-  }, [isPlaying, currentSong]);
-
-  const handleNext = useCallback(async () => {
-    if(currentSong){
-      await recordInteraction(currentSong.id, "skip");
-    }
-    if (currentIndex < playlist.length - 1) {
-      const nextIndex = currentIndex + 1;
-      setCurrentIndex(nextIndex);
-      setCurrentSong(playlist[nextIndex]);
-      setIsPlaying(true);
-    } else if (playlist.length > 0) {
-      // Loop back to first song
-      setCurrentIndex(0);
-      setCurrentSong(playlist[0]);
-      setIsPlaying(true);
-    }
-  }, [currentIndex, playlist, currentSong]);
-
-  const handlePrevious = useCallback(async () => {
-    if(currentSong){
-      await recordInteraction(currentSong.id, "skip");
-    }
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      setCurrentIndex(prevIndex);
-      setCurrentSong(playlist[prevIndex]);
-      setIsPlaying(true);
-    } else if (playlist.length > 0) {
-      // Loop to last song
-      const lastIndex = playlist.length - 1;
-      setCurrentIndex(lastIndex);
-      setCurrentSong(playlist[lastIndex]);
-      setIsPlaying(true);
-    }
-  }, [currentIndex, playlist, currentSong]);
+  }, [currentSong, isPlaying, songs, dispatch]);
 
   const handleSongLike = useCallback(async (song) => {
-    // Add song to favorites
+    const alreadyLiked = likedSongIds.has(song.id);
+    setLikedSongIds((prev) => {
+      const next = new Set(prev);
+      alreadyLiked ? next.delete(song.id) : next.add(song.id);
+      return next;
+    });
     try {
-      await recordInteraction(song.id, "favorites")
-      toast.success(`Added "${song.title}" to favorites!`);
-    } catch (error) {
-      toast.error("Failed to add song to favorites");
+      if (alreadyLiked) {
+        await removeFromFavorites(song.id);
+        toast.success(`Removed "${song.title}" from favorites`);
+      } else {
+        await addToFavorites(song.id);
+        toast.success(`Added "${song.title}" to favorites!`);
+      }
+    } catch {
+      setLikedSongIds((prev) => {
+        const next = new Set(prev);
+        alreadyLiked ? next.add(song.id) : next.delete(song.id);
+        return next;
+      });
+      toast.error("Failed to update favorites");
     }
+  }, [likedSongIds]);
+
+  const handleSongAddToPlaylist = useCallback((song) => {
+    setAddToPlaylistTarget(song);
   }, []);
 
   const handleSongDownload = useCallback((song) => {
@@ -143,13 +110,6 @@ const Home = () => {
     handleSongPlay(song);
   }, [handleSongPlay]);
 
-  const handleClosePlayer = useCallback(() => {
-    // Pause audio before closing
-    setIsPlaying(false);
-    // Clear current song to hide player
-    setCurrentSong(null);
-  }, []);
-
   const handleMenuClick = useCallback(() => {
     setSidebarCollapsed(!sidebarCollapsed);
   }, [sidebarCollapsed]);
@@ -166,7 +126,7 @@ const Home = () => {
       {/* Main Content — always full width */}
       <div
         className="flex flex-col min-h-screen"
-        style={{ marginBottom: currentSong ? '80px' : '0' }}
+        style={{ marginBottom: currentSong ? '80px' : '0', paddingBottom: currentSong ? 'env(safe-area-inset-bottom, 0px)' : '0' }}
       >
         <Header
           onSearchSong={handleSearchSong}
@@ -181,7 +141,7 @@ const Home = () => {
           <MusicBanner
             currentSong={currentSong}
             isPlaying={isPlaying}
-            onPlayPause={handlePlayPause}
+            onPlayPause={() => dispatch(togglePlayPause())}
           />
 
           <SongGrid
@@ -192,6 +152,8 @@ const Home = () => {
             onSongPlay={handleSongPlay}
             onSongLike={handleSongLike}
             onSongDownload={handleSongDownload}
+            onSongAddToPlaylist={handleSongAddToPlaylist}
+            likedSongIds={likedSongIds}
           />
 
           {isLoading && page > 1 && (
@@ -234,20 +196,17 @@ const Home = () => {
         )}
       </AnimatePresence>
 
-      {currentSong && (
-        <AudioPlayer
-          currentSong={currentSong}
-          isPlaying={isPlaying}
-          onPlayPause={handlePlayPause}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          playlist={playlist}
-          currentIndex={currentIndex}
-          onSongLike={handleSongLike}
-          onSongDownload={handleSongDownload}
-          onClose={handleClosePlayer}
-        />
-      )}
+      <AnimatePresence>
+        {addToPlaylistTarget && (
+          <AddToPlaylistModal
+            song={addToPlaylistTarget}
+            playlists={playlists}
+            onClose={() => setAddToPlaylistTarget(null)}
+            onPlaylistCreated={(newPlaylist) => setPlaylists((prev) => [newPlaylist, ...prev])}
+            onAdded={() => {}}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

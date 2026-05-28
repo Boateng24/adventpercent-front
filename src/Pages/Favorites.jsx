@@ -1,19 +1,22 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Heart, Play, Download, Trash2} from "lucide-react";
+import { Heart, Play, Download, Trash2, Music } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import Header from "../Components/Header/Header";
 import Sidebar from "../Components/SideBar/SideBar";
-import AudioPlayer from "../Components/AudioPlayer/AudioPlayer";
 import { toast } from "react-toastify";
 import { getFavorites, removeFromFavorites } from "../api/songs/songs";
+import { setQueue, togglePlayPause } from "../features/queue.slice";
+import downloadSong from "../helpers/download";
 
 const Favorites = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const dispatch = useDispatch();
+  const { items: queueItems, currentIndex: queueIndex, isPlaying } = useSelector((s) => s.queue);
+  const currentSong = queueItems[queueIndex] ?? null;
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentSong, setCurrentSong] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -32,37 +35,10 @@ const Favorites = () => {
 
   const handleSongPlay = (song) => {
     const songIndex = favorites.findIndex(s => s.id === song.id);
-    
     if (currentSong?.id === song.id) {
-      setIsPlaying(!isPlaying);
+      dispatch(togglePlayPause());
     } else {
-      setCurrentSong(song);
-      setCurrentIndex(songIndex !== -1 ? songIndex : 0);
-      setIsPlaying(true);
-    }
-  };
-
-  const handlePlayPause = () => {
-    if (currentSong) {
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentIndex < favorites.length - 1) {
-      const nextIndex = currentIndex + 1;
-      setCurrentIndex(nextIndex);
-      setCurrentSong(favorites[nextIndex]);
-      setIsPlaying(true);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      setCurrentIndex(prevIndex);
-      setCurrentSong(favorites[prevIndex]);
-      setIsPlaying(true);
+      dispatch(setQueue({ items: favorites, startIndex: songIndex !== -1 ? songIndex : 0 }));
     }
   };
 
@@ -71,17 +47,21 @@ const Favorites = () => {
       await removeFromFavorites(songId);
       setFavorites(prev => prev.filter(song => song.id !== songId));
       toast.success("Removed from favorites");
-      if (currentSong?.id === songId) {
-        setCurrentSong(null);
-        setIsPlaying(false);
-      }
     } catch {
       toast.error("Failed to remove from favorites");
     }
   };
 
+  const handleMenuClick = () => setSidebarCollapsed((c) => !c);
+
   const handleDownload = (song) => {
-    toast.success(`Downloading "${song.title}"`);
+    if (song.track && song.title) {
+      downloadSong(song.track, song.title, (progress) => {
+        if (progress === 100) toast.success(`Downloaded "${song.title}" successfully!`);
+      });
+    } else {
+      toast.error("Unable to download this song");
+    }
   };
 
   const formatDuration = (duration) => {
@@ -114,26 +94,25 @@ const Favorites = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950 w-screen">
-      <Sidebar 
-        isCollapsed={sidebarCollapsed} 
+      <Sidebar
+        isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        overlay
       />
 
-      <motion.div
-        animate={{
-          marginLeft: sidebarCollapsed ? 80 : 280
-        }}
-        className="flex-1 transition-all duration-300 w-full"
+      <div
+        className="flex-1 overflow-y-auto min-h-screen"
         style={{ marginBottom: currentSong ? '100px' : '0' }}
       >
-       <Header 
+        <Header
           onSearchSong={handleSongPlay}
           songs={favorites}
           title="Your Favorites"
           subtitle="Songs you've loved"
+          onMenuClick={handleMenuClick}
         />
 
-        <div className="p-6">
+        <div className="p-3 sm:p-4 lg:p-6">
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
@@ -154,10 +133,10 @@ const Favorites = () => {
                     <Heart size={32} />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold">Your Favorites</h1>
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Your Favorites</h1>
                     <p className="text-red-100">
-                      {favorites.length} song{favorites.length !== 1 ? 's' : ''} • 
-                      {Math.floor(favorites.reduce((acc, song) => acc + song.duration, 0) / 60)} min total
+                      {favorites.length} song{favorites.length !== 1 ? 's' : ''} •{' '}
+                      {Math.floor(favorites.reduce((acc, song) => acc + (song.duration ?? 0), 0) / 60)} min total
                     </p>
                   </div>
                 </div>
@@ -200,14 +179,8 @@ const Favorites = () => {
                               <motion.div
                                 key={i}
                                 className="w-0.5 h-4 bg-green-500 rounded-full"
-                                animate={{
-                                  height: [8, 16, 8],
-                                }}
-                                transition={{
-                                  duration: 0.8,
-                                  repeat: Infinity,
-                                  delay: i * 0.1,
-                                }}
+                                animate={{ height: [8, 16, 8] }}
+                                transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.1 }}
                               />
                             ))}
                           </div>
@@ -221,11 +194,17 @@ const Favorites = () => {
                       </div>
 
                       {/* Album Art */}
-                      <img
-                        src={song.image}
-                        alt={song.title}
-                        className="w-12 h-12 rounded-lg object-cover mr-4"
-                      />
+                      {song.image ? (
+                        <img
+                          src={song.image}
+                          alt={song.title}
+                          className="w-12 h-12 rounded-lg object-cover mr-4"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 mr-4 flex items-center justify-center flex-shrink-0">
+                          <Music size={18} className="text-gray-400" />
+                        </div>
+                      )}
 
                       {/* Song Info */}
                       <div className="flex-1 min-w-0">
@@ -254,19 +233,13 @@ const Favorites = () => {
                       {/* Actions */}
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownload(song);
-                          }}
+                          onClick={(e) => { e.stopPropagation(); handleDownload(song); }}
                           className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
                         >
                           <Download size={16} className="text-gray-400 hover:text-blue-500" />
                         </button>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveFromFavorites(song.id);
-                          }}
+                          onClick={(e) => { e.stopPropagation(); handleRemoveFromFavorites(song.id); }}
                           className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
                         >
                           <Trash2 size={16} className="text-gray-400 hover:text-red-500" />
@@ -279,19 +252,7 @@ const Favorites = () => {
             </>
           )}
         </div>
-         </motion.div>
-
-      {currentSong && (
-        <AudioPlayer
-          currentSong={currentSong}
-          isPlaying={isPlaying}
-          onPlayPause={handlePlayPause}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          playlist={favorites}
-          currentIndex={currentIndex}
-        />
-      )}
+      </div>
     </div>
   );
 };

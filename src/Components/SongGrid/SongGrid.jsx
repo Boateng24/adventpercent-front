@@ -1,6 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Heart, Download } from "lucide-react";
+import { Play, Pause, Heart, Download, MoreVertical, PlayCircle, ListEnd, ListMusic, Radio, Loader2 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { addToQueue, playNext, startRadio } from "../../features/queue.slice";
+import { getSimilarSongs } from "../../api/songs/songs";
+import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 
 const SongCardSkeleton = () => (
@@ -14,14 +18,51 @@ const SongCardSkeleton = () => (
   </div>
 );
 
-const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }) => {
+const SongCard = ({ song, isPlaying, isCurrentSong, isLiked, onPlay, onLike, onDownload, onAddToPlaylist }) => {
+  const dispatch = useDispatch();
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [radioLoading, setRadioLoading] = useState(false);
+  const menuRef = useRef(null);
 
   const defaultImage = "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400";
 
-  const handleImageError = () => {
-    setImageError(true);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
+  const handleStartRadio = async () => {
+    setMenuOpen(false);
+    setRadioLoading(true);
+    const toastId = toast.loading(`Starting radio from "${song.title}"…`);
+    try {
+      const similar = await getSimilarSongs(song);
+      const songs = [song, ...similar.slice(0, 24)];
+      dispatch(startRadio({ songs, seedSong: song }));
+      toast.update(toastId, {
+        render: `Radio · ${songs.length} songs queued`,
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } catch {
+      toast.update(toastId, {
+        render: "Failed to start radio",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } finally {
+      setRadioLoading(false);
+    }
   };
 
   return (
@@ -34,7 +75,7 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
       className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden mt-4 sm:mt-6"
       style={{ height: 'auto' }}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => { setIsHovered(false); setMenuOpen(false); }}
     >
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden">
@@ -42,12 +83,12 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
           src={imageError ? defaultImage : (song?.image || defaultImage)}
           alt={song?.title || "Music"}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          onError={handleImageError}
+          onError={() => setImageError(true)}
         />
-        
+
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300" />
-        
+
         {/* Play Button */}
         <AnimatePresence>
           {isHovered && (
@@ -76,28 +117,100 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
           <AnimatePresence>
             {isHovered && (
               <>
+                {/* Like */}
                 <motion.button
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => onLike(song)}
+                  onClick={(e) => { e.stopPropagation(); onLike(song); }}
                   className="bg-white/90 backdrop-blur-sm rounded-full p-1.5 sm:p-2 shadow-lg hover:bg-white transition-colors"
                 >
-                  <Heart size={14} className="sm:w-4 sm:h-4 text-gray-700" />
+                  <Heart
+                    size={14}
+                    className="sm:w-4 sm:h-4"
+                    fill={isLiked ? "currentColor" : "none"}
+                    color={isLiked ? "#ef4444" : "#374151"}
+                  />
                 </motion.button>
+
+                {/* Download */}
                 <motion.button
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => onDownload(song)}
+                  onClick={(e) => { e.stopPropagation(); onDownload(song); }}
                   className="bg-white/90 backdrop-blur-sm rounded-full p-1.5 sm:p-2 shadow-lg hover:bg-white transition-colors"
                 >
                   <Download size={14} className="sm:w-4 sm:h-4 text-gray-700" />
                 </motion.button>
+
+                {/* ⋮ More menu */}
+                <motion.div
+                  ref={menuRef}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="relative"
+                >
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o); }}
+                    className="bg-white/90 backdrop-blur-sm rounded-full p-1.5 sm:p-2 shadow-lg hover:bg-white transition-colors"
+                    title="More options"
+                  >
+                    <MoreVertical size={14} className="sm:w-4 sm:h-4 text-gray-700" />
+                  </button>
+
+                  <AnimatePresence>
+                    {menuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                        transition={{ duration: 0.1 }}
+                        className="absolute right-0 top-9 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 py-1 z-50 min-w-[148px]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => { dispatch(playNext(song)); setMenuOpen(false); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                        >
+                          <PlayCircle size={14} className="text-green-500 flex-shrink-0" />
+                          Play Next
+                        </button>
+                        <button
+                          onClick={() => { dispatch(addToQueue(song)); setMenuOpen(false); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                        >
+                          <ListEnd size={14} className="text-blue-500 flex-shrink-0" />
+                          Add to Queue
+                        </button>
+                        <div className="h-px bg-gray-200 dark:bg-gray-700 my-1" />
+                        <button
+                          onClick={() => { onAddToPlaylist?.(song); setMenuOpen(false); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                        >
+                          <ListMusic size={14} className="text-purple-500 flex-shrink-0" />
+                          Add to Playlist
+                        </button>
+                        <div className="h-px bg-gray-200 dark:bg-gray-700 my-1" />
+                        <button
+                          onClick={handleStartRadio}
+                          disabled={radioLoading}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left disabled:opacity-50"
+                        >
+                          {radioLoading
+                            ? <Loader2 size={14} className="text-green-500 animate-spin flex-shrink-0" />
+                            : <Radio size={14} className="text-green-500 flex-shrink-0" />}
+                          Start Radio
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
               </>
             )}
           </AnimatePresence>
@@ -112,14 +225,8 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
                   <motion.div
                     key={i}
                     className="w-0.5 h-2 sm:h-3 bg-white rounded-full"
-                    animate={{
-                      height: [6, 12, 6],
-                    }}
-                    transition={{
-                      duration: 0.8,
-                      repeat: Infinity,
-                      delay: i * 0.1,
-                    }}
+                    animate={{ height: [6, 12, 6] }}
+                    transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.1 }}
                   />
                 ))}
               </div>
@@ -149,26 +256,21 @@ const SongCard = ({ song, isPlaying, isCurrentSong, onPlay, onLike, onDownload }
   );
 };
 
-const SongGrid = ({ 
-  songs = [], 
-  isLoading, 
-  currentSong, 
-  isPlaying, 
+const SongGrid = ({
+  songs = [],
+  isLoading,
+  currentSong,
+  isPlaying,
   onSongPlay,
   onSongLike,
   onSongDownload,
+  onSongAddToPlaylist,
+  likedSongIds = new Set(),
 }) => {
-  const handlePlay = useCallback((song) => {
-    onSongPlay(song);
-  }, [onSongPlay]);
-
-  const handleLike = useCallback((song) => {
-    onSongLike?.(song);
-  }, [onSongLike]);
-
-  const handleDownload = useCallback((song) => {
-    onSongDownload?.(song);
-  }, [onSongDownload]);
+  const handlePlay = useCallback((song) => onSongPlay(song), [onSongPlay]);
+  const handleLike = useCallback((song) => onSongLike?.(song), [onSongLike]);
+  const handleDownload = useCallback((song) => onSongDownload?.(song), [onSongDownload]);
+  const handleAddToPlaylist = useCallback((song) => onSongAddToPlaylist?.(song), [onSongAddToPlaylist]);
 
   if (isLoading) {
     return (
@@ -181,8 +283,7 @@ const SongGrid = ({
           <div className="h-6 sm:h-8 bg-gray-200 rounded w-32 sm:w-48 animate-pulse" />
           <div className="h-3 sm:h-4 bg-gray-200 rounded w-16 sm:w-20 animate-pulse" />
         </motion.div>
-
-        <motion.div 
+        <motion.div
           layout
           className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6"
         >
@@ -216,7 +317,7 @@ const SongGrid = ({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <motion.div 
+      <motion.div
         layout
         className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6"
       >
@@ -227,9 +328,11 @@ const SongGrid = ({
               song={song}
               isPlaying={isPlaying}
               isCurrentSong={currentSong?.id === song?.id}
+              isLiked={likedSongIds.has(song?.id)}
               onPlay={handlePlay}
               onLike={handleLike}
               onDownload={handleDownload}
+              onAddToPlaylist={handleAddToPlaylist}
             />
           ))}
         </AnimatePresence>
@@ -242,9 +345,11 @@ SongCard.propTypes = {
   song: PropTypes.object.isRequired,
   isPlaying: PropTypes.bool,
   isCurrentSong: PropTypes.bool,
+  isLiked: PropTypes.bool,
   onPlay: PropTypes.func.isRequired,
   onLike: PropTypes.func,
-  onDownload: PropTypes.func
+  onDownload: PropTypes.func,
+  onAddToPlaylist: PropTypes.func,
 };
 
 SongGrid.propTypes = {
@@ -255,7 +360,8 @@ SongGrid.propTypes = {
   onSongPlay: PropTypes.func.isRequired,
   onSongLike: PropTypes.func,
   onSongDownload: PropTypes.func,
-  title: PropTypes.string
+  onSongAddToPlaylist: PropTypes.func,
+  likedSongIds: PropTypes.instanceOf(Set),
 };
 
 export default SongGrid;

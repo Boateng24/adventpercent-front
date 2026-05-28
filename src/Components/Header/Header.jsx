@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Settings, Menu, TrendingUp } from "lucide-react";
 import UserProfile from "../UserProfile/UserProfile";
 import SearchBar from "../SearchBar/SearchBar";
@@ -17,7 +17,20 @@ const Header = ({
   const [notifications] = useState(3);
   const [searchResults, setSearchResults] = useState([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const settingsRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handler = (e) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [mobileMenuOpen]);
 
   const handleSearch = async (query) => {
     if (query.trim().length >= 2) {
@@ -79,7 +92,7 @@ const Header = ({
         {/* Actions */}
         <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
 
-          {/* Notifications */}
+          {/* Notifications — desktop only */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -93,8 +106,10 @@ const Header = ({
             )}
           </motion.button>
 
-          {/* Settings */}
+          {/* Settings (desktop) + Mobile combined menu — share one relative anchor so SettingsPanel positions correctly on both */}
           <div ref={settingsRef} className="relative">
+
+            {/* Desktop settings button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -110,6 +125,63 @@ const Header = ({
                 className={`sm:w-5 sm:h-5 ${settingsOpen ? "text-white" : "text-gray-600 dark:text-gray-300"}`}
               />
             </motion.button>
+
+            {/* Mobile combined button — Bell icon with notification badge, opens a mini-menu */}
+            <div className="flex sm:hidden" ref={mobileMenuRef}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setMobileMenuOpen((o) => !o)}
+                className="relative p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <Bell size={18} className="text-gray-600 dark:text-gray-300" />
+                {notifications > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center leading-none">
+                    {notifications}
+                  </span>
+                )}
+              </motion.button>
+
+              <AnimatePresence>
+                {mobileMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                    transition={{ duration: 0.12 }}
+                    className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Notifications row */}
+                    <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                      <div className="relative flex-shrink-0">
+                        <Bell size={16} className="text-gray-600 dark:text-gray-300" />
+                        {notifications > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] rounded-full h-3.5 w-3.5 flex items-center justify-center">
+                            {notifications}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">Notifications</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{notifications} unread</p>
+                      </div>
+                    </div>
+
+                    {/* Settings row */}
+                    <button
+                      onClick={() => { setSettingsOpen((o) => !o); setMobileMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <Settings size={16} className="text-gray-600 dark:text-gray-300 flex-shrink-0" />
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Settings</p>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* SettingsPanel — anchored to this wrapper, works on both desktop and mobile */}
             <SettingsPanel
               isOpen={settingsOpen}
               onClose={() => setSettingsOpen(false)}

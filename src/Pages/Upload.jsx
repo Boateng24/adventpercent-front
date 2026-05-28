@@ -15,7 +15,7 @@ import axios from "axios";
 import { uploadBase } from "../api/backend.api";
 
 const Upload = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [files, setFiles] = useState({
     audios: [],
     images: []
@@ -45,6 +45,7 @@ const Upload = () => {
       artist: "",
       album: "",
       genre: "",
+      lyrics: "",
       status: 'pending',
       pairedImage: null, // Will store ID of paired image
       errors: {}
@@ -187,8 +188,9 @@ const handleUpload = async () => {
       artist: audio.artist,
       album: audio.album,
       genre: audio.genre,
+      lyrics: audio.lyrics.trim() || undefined,
       audioFilename: audio.file.name,
-      imageFilename: audio.pairedImage 
+      imageFilename: audio.pairedImage
         ? files.images.find(img => img.id === audio.pairedImage)?.file.name
         : undefined
     }));
@@ -242,11 +244,20 @@ const handleUpload = async () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-6 w-screen">
-         <Sidebar 
-                isCollapsed={sidebarCollapsed} 
+         <Sidebar
+                isCollapsed={sidebarCollapsed}
                 onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+                overlay
               />
       <div className="max-w-4xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => setSidebarCollapsed((c) => !c)}
+            className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600 dark:text-gray-300"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+        </div>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -452,6 +463,24 @@ const handleUpload = async () => {
                           <option value="traditional">Traditional</option>
                         </select>
                       </div>
+                    </div>
+
+                    {/* Lyrics */}
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Lyrics
+                        <span className="ml-2 text-xs font-normal text-gray-400 dark:text-gray-500">
+                          Plain text or LRC timed format
+                        </span>
+                      </label>
+                      <textarea
+                        placeholder={"Plain text:\nVerse 1...\n\nLRC timed format:\n[00:12.00] First line\n[00:17.50] Second line"}
+                        value={audio.lyrics}
+                        onChange={(e) => updateFileInfo(audio.id, 'lyrics', e.target.value)}
+                        rows={5}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm font-mono resize-y"
+                        disabled={uploading}
+                      />
                     </div>
 
                     {/* Image Pairing Section */}
