@@ -62,22 +62,22 @@ const Header = ({
           </motion.button>
         )}
 
-        {/* Title */}
+        {/* Title — hidden on mobile to give the search bar full width */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex-shrink-0"
+          className="hidden sm:block flex-shrink-0"
         >
-          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white truncate">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white truncate">
             {title}
           </h1>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block truncate">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
             {subtitle}
           </p>
         </motion.div>
 
-        {/* Search */}
-        <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-2 sm:mx-4 lg:mx-8">
+        {/* Search — full width on mobile, capped on larger screens */}
+        <div className="flex-1 sm:max-w-sm md:max-w-md lg:max-w-lg mx-2 sm:mx-4 lg:mx-8">
           <motion.div whileHover={{ scale: 1.02 }}>
             <SearchBar
               onSongSelect={onSearchSong}

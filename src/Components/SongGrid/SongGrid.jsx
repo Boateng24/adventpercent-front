@@ -6,6 +6,7 @@ import { addToQueue, playNext, startRadio } from "../../features/queue.slice";
 import { getSimilarSongs } from "../../api/songs/songs";
 import { toast } from "react-toastify";
 import PropTypes from "prop-types";
+import { getDefaultImage } from "../../utils/defaultImages";
 
 const SongCardSkeleton = () => (
   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden animate-pulse">
@@ -26,7 +27,7 @@ const SongCard = ({ song, isPlaying, isCurrentSong, isLiked, onPlay, onLike, onD
   const [radioLoading, setRadioLoading] = useState(false);
   const menuRef = useRef(null);
 
-  const defaultImage = "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400";
+  const defaultImage = getDefaultImage(song);
 
   useEffect(() => {
     if (!menuOpen) return;

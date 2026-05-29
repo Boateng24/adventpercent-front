@@ -19,9 +19,7 @@ import EqualizerPanel from "../EqualizerPanel/EqualizerPanel";
 import LyricsPanel from "../LyricsPanel/LyricsPanel";
 import { EQ_PRESETS, EQ_BAND_FREQS } from "../../utils/eqPresets";
 import { isLRC, parseLRC, distributeLines } from "../../utils/lrcParser";
-
-const DEFAULT_IMAGE =
-  "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400";
+import { getDefaultImage } from "../../utils/defaultImages";
 
 const SleepMenu = ({ onSelect }) => (
   <motion.div
@@ -52,6 +50,7 @@ const AudioPlayer = () => {
   const dispatch = useDispatch();
   const { items, currentIndex, isPlaying, panelOpen, radioMode, radioSeedSong } = useSelector((s) => s.queue);
   const currentSong = items[currentIndex] ?? null;
+  const defaultImage = getDefaultImage(currentSong);
 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -206,8 +205,13 @@ const AudioPlayer = () => {
     const audio = getActive();
     if (!audio) return;
     if (isPlaying && !isLoading) {
-      audio.play().catch(() => dispatch(setIsPlaying(false)));
-    } else {
+      // AbortError fires when audio.load() interrupts a pending play() — ignore it
+      // so that the canplay event can re-trigger this effect and start playback cleanly
+      audio.play().catch((err) => {
+        if (err.name !== 'AbortError') dispatch(setIsPlaying(false));
+      });
+    } else if (!isPlaying) {
+      // Only pause on an explicit pause action, not while loading a new track
       audio.pause();
     }
   }, [isPlaying, isLoading, dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -446,10 +450,10 @@ const AudioPlayer = () => {
             </div>
           </div>
 
-          {/* Close */}
+          {/* Close — desktop only (mobile close lives in the icon row) */}
           <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             onClick={() => dispatch(closePlayer())}
-            className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-blue-500 shadow z-10">
+            className="hidden lg:flex absolute top-2 right-2 w-6 h-6 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-blue-500 shadow z-10">
             <X size={14} className="text-white" />
           </motion.button>
 
@@ -459,9 +463,9 @@ const AudioPlayer = () => {
             <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
               <motion.div whileHover={{ scale: 1.05 }} className="relative cursor-pointer flex-shrink-0"
                 onClick={() => setIsExpanded(!isExpanded)}>
-                <img src={currentSong.image || DEFAULT_IMAGE} alt={currentSong.title}
+                <img src={currentSong.image || defaultImage} alt={currentSong.title}
                   className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg object-cover shadow-lg"
-                  onError={(e) => { e.target.src = DEFAULT_IMAGE; }} />
+                  onError={(e) => { e.target.src = defaultImage; }} />
                 {isLoading && (
                   <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
@@ -676,6 +680,11 @@ const AudioPlayer = () => {
                 </motion.button>
                 <AnimatePresence>{sleepMenuOpen && <SleepMenu onSelect={startSleepTimer} />}</AnimatePresence>
               </div>
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                onClick={() => dispatch(closePlayer())}
+                className="p-2 rounded-full text-gray-400 hover:text-red-500 transition-colors">
+                <X size={18} />
+              </motion.button>
             </div>
           </div>
 
@@ -692,9 +701,9 @@ const AudioPlayer = () => {
 
                   {/* Left — song info */}
                   <div className="flex sm:flex-col items-center sm:text-center gap-3 flex-shrink-0">
-                    <img src={currentSong.image || DEFAULT_IMAGE} alt={currentSong.title}
+                    <img src={currentSong.image || defaultImage} alt={currentSong.title}
                       className="w-16 h-16 sm:w-36 sm:h-36 rounded-lg sm:rounded-xl object-cover shadow-lg"
-                      onError={(e) => { e.target.src = DEFAULT_IMAGE; }} />
+                      onError={(e) => { e.target.src = defaultImage; }} />
                     <div className="w-full">
                       <h2 className="font-bold text-gray-900 dark:text-white truncate text-base">
                         {currentSong.title || "Unknown Title"}

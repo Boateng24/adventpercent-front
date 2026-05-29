@@ -28,6 +28,7 @@ const Genre = () => {
     acapella: { name: "Acapella", description: "Pure vocal performances without instruments", color: "from-purple-500 to-pink-500", icon: "🎤" },
     oldtimers: { name: "Old Timers", description: "Classic hymns and traditional songs", color: "from-amber-500 to-orange-500", icon: "📻" },
     live: { name: "Live Performance", description: "Recorded live performances and concerts", color: "from-red-500 to-rose-500", icon: "🎪" },
+    hymns: { name: "Hymns", description: "Melodious Adventist hymns and sacred songs", color: "from-sky-500 to-cyan-500", icon: "🙏" },
   };
 
   const currentGenre = genreInfo[genre] || {

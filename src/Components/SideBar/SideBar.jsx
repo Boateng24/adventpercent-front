@@ -55,6 +55,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse, overlay = false }) => {
     { id: 'quartet', label: 'Quartet', path: '/genre/quartet' },
     { id: 'chorale', label: 'Chorale', path: '/genre/chorale' },
     { id: 'acapella', label: 'Acapella', path: '/genre/acapella' },
+    { id: 'hymns', label: 'Hymns', path: '/genre/hymns' },
     { id: 'oldtimers', label: 'Old Timers', path: '/genre/oldtimers' },
     { id: 'live', label: 'Live Performance', path: '/genre/live' },
   ];
@@ -112,8 +113,12 @@ const Sidebar = ({ isCollapsed, onToggleCollapse, overlay = false }) => {
           </button>
         </div>
 
+        {/* Scrollable middle — nav + genres grow to fill available height and scroll if needed.
+            Scrollbar is invisible (globally hidden in index.css). */}
+        <div className="flex-1 overflow-y-auto">
+
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="p-4 space-y-2">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -200,6 +205,8 @@ const Sidebar = ({ isCollapsed, onToggleCollapse, overlay = false }) => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        </div>{/* end scrollable middle */}
 
         {/* Footer — user info + logout */}
         <div className="p-4 border-t border-gray-100 dark:border-gray-700 space-y-3">

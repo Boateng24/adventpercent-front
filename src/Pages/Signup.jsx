@@ -71,10 +71,10 @@ const Signup = () => {
     } bg-white dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 shadow-xs focus:outline-none focus:ring-2 focus:ring-[#135352]`;
 
   return (
-    <div className="flex items-center flex-row w-screen h-screen bg-white dark:bg-gray-950">
-      <section className="flex flex-col justify-center items-start flex-1 self-stretch px-8 overflow-y-auto">
+    <div className="flex flex-col lg:flex-row w-screen min-h-screen bg-white dark:bg-gray-950">
+      <section className="flex flex-col justify-center items-center flex-1 self-stretch px-4 sm:px-8 py-8 lg:py-0 overflow-y-auto">
         <form
-          className="flex w-[440px] flex-col items-center gap-5 px-10 py-8 rounded-lg border-b-2 border-[#135352] bg-white dark:bg-gray-900 shadow-md mx-auto"
+          className="w-full max-w-[440px] flex flex-col items-center gap-5 px-5 sm:px-10 py-8 rounded-lg border-b-2 border-[#135352] bg-white dark:bg-gray-900 shadow-md"
           onSubmit={handleSubmit}
         >
           <header className="flex flex-col items-center gap-4 self-stretch">
@@ -212,7 +212,7 @@ const Signup = () => {
         </form>
       </section>
 
-      <section className="flex self-stretch flex-1">
+      <section className="hidden lg:flex self-stretch flex-1">
         <RightImage />
       </section>
     </div>

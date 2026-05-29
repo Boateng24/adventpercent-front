@@ -457,6 +457,7 @@ const handleUpload = async () => {
                           <option value="quartet">Quartet</option>
                           <option value="chorale">Chorale</option>
                           <option value="acapella">Acapella</option>
+                          <option value="hymns">Hymns</option>
                           <option value="oldtimers">Old Timers</option>
                           <option value="live">Live Performance</option>
                           <option value="contemporary">Contemporary</option>

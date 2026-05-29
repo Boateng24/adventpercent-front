@@ -49,9 +49,9 @@ const Reset = () => {
   // No token in URL — link is invalid
   if (!token) {
     return (
-      <div className="flex items-center flex-row w-screen h-screen bg-white dark:bg-gray-950">
-        <section className="flex flex-col justify-center items-start flex-1 self-stretch px-8">
-          <div className="flex w-[440px] flex-col items-center gap-6 px-10 py-8 rounded-lg border-b-2 border-red-400 bg-white dark:bg-gray-900 shadow-md mx-auto text-center">
+      <div className="flex flex-col lg:flex-row w-screen min-h-screen bg-white dark:bg-gray-950">
+        <section className="flex flex-col justify-center items-center flex-1 self-stretch px-4 sm:px-8 py-8 lg:py-0">
+          <div className="w-full max-w-[440px] flex flex-col items-center gap-6 px-5 sm:px-10 py-8 rounded-lg border-b-2 border-red-400 bg-white dark:bg-gray-900 shadow-md text-center">
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
               <AlertTriangle className="text-red-500" size={32} />
             </div>
@@ -66,7 +66,7 @@ const Reset = () => {
             </Link>
           </div>
         </section>
-        <section className="flex self-stretch flex-1">
+        <section className="hidden lg:flex self-stretch flex-1">
           <RightImage />
         </section>
       </div>
@@ -74,10 +74,10 @@ const Reset = () => {
   }
 
   return (
-    <div className="flex items-center flex-row w-screen h-screen bg-white dark:bg-gray-950">
-      <section className="flex flex-col justify-center items-start flex-1 self-stretch px-8">
+    <div className="flex flex-col lg:flex-row w-screen min-h-screen bg-white dark:bg-gray-950">
+      <section className="flex flex-col justify-center items-center flex-1 self-stretch px-4 sm:px-8 py-8 lg:py-0">
         <form
-          className="flex w-[440px] flex-col items-center gap-6 px-10 py-8 rounded-lg border-b-2 border-[#135352] bg-white dark:bg-gray-900 shadow-md mx-auto"
+          className="w-full max-w-[440px] flex flex-col items-center gap-6 px-5 sm:px-10 py-8 rounded-lg border-b-2 border-[#135352] bg-white dark:bg-gray-900 shadow-md"
           onSubmit={handleSubmit}
         >
           <header className="flex flex-col items-center gap-6 self-stretch">
@@ -167,7 +167,7 @@ const Reset = () => {
         </form>
       </section>
 
-      <section className="flex self-stretch flex-1">
+      <section className="hidden lg:flex self-stretch flex-1">
         <RightImage />
       </section>
     </div>
